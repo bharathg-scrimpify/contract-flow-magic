@@ -1,15 +1,17 @@
-
 import React, { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import ContractStepper, { Step } from '@/components/contract/ContractStepper';
 import ContractSummary from '@/components/contract/ContractSummary';
 import ReviewPanel from '@/components/contract/ReviewPanel';
+import ReviewModal from '@/components/contract/ReviewModal';
 import { Info, Edit, CheckCircle2 } from 'lucide-react';
 import { Contract } from '@/types/contract';
 
 const Index = () => {
   const { toast } = useToast();
   const [isReviewPanelOpen, setIsReviewPanelOpen] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [useAlternativeDesign, setUseAlternativeDesign] = useState(false);
   const [contractSteps, setContractSteps] = useState<Step[]>([
     { id: 1, name: 'Draft', status: 'current' },
     { id: 2, name: 'Pending Review', status: 'upcoming' },
@@ -19,7 +21,6 @@ const Index = () => {
     { id: 6, name: 'Completed', status: 'upcoming' },
   ]);
   
-  // Mock contract data
   const [contract, setContract] = useState<Contract>({
     id: 'c-12345',
     subject: 'Contract Template',
@@ -47,27 +48,29 @@ const Index = () => {
   });
 
   const handleSendForReview = () => {
-    setIsReviewPanelOpen(true);
+    if (useAlternativeDesign) {
+      setIsReviewModalOpen(true);
+    } else {
+      setIsReviewPanelOpen(true);
+    }
   };
 
   const handleReviewComplete = (data: any) => {
-    // Update contract status and steps
     setContract({
       ...contract,
       status: 'pending_review',
       progress: 40,
     });
     
-    // Update stepper
     const updatedSteps = contractSteps.map(step => {
-      if (step.id === 1) return { ...step, status: 'completed' };
-      if (step.id === 2) return { ...step, status: 'current' };
+      if (step.id === 1) return { ...step, status: 'completed' as const };
+      if (step.id === 2) return { ...step, status: 'current' as const };
       return step;
     });
     setContractSteps(updatedSteps);
     
-    // Close panel and show toast
     setIsReviewPanelOpen(false);
+    setIsReviewModalOpen(false);
     
     toast({
       title: "Contract Sent for Review",
@@ -90,9 +93,12 @@ const Index = () => {
     });
   };
 
+  const toggleDesign = () => {
+    setUseAlternativeDesign(prev => !prev);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
         <div className="container flex justify-between items-center h-16 px-4 md:px-6">
           <div className="flex items-center">
@@ -121,7 +127,6 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="container px-4 py-8 md:px-6">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -130,14 +135,19 @@ const Index = () => {
               Draft
             </span>
           </div>
+          
+          <button 
+            onClick={toggleDesign}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Switch to {useAlternativeDesign ? 'Slide-in Panel' : 'Modal Dialog'}
+          </button>
         </div>
 
-        {/* Stepper */}
         <div className="bg-white rounded-lg shadow-soft border border-gray-100 p-8 mb-8">
           <ContractStepper steps={contractSteps} />
         </div>
 
-        {/* Alert */}
         <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start mb-8 animate-fade-in">
           <Info className="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
           <div>
@@ -148,11 +158,8 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left column - Contract details */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Contract From */}
             <div className="bg-white rounded-lg shadow-soft border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Contract From</h2>
@@ -168,7 +175,6 @@ const Index = () => {
               </div>
             </div>
             
-            {/* Contract To */}
             <div className="bg-white rounded-lg shadow-soft border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Contract To</h2>
@@ -183,7 +189,6 @@ const Index = () => {
               </div>
             </div>
             
-            {/* Place */}
             <div className="bg-white rounded-lg shadow-soft border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Place</h2>
@@ -197,7 +202,6 @@ const Index = () => {
               </div>
             </div>
             
-            {/* Time */}
             <div className="bg-white rounded-lg shadow-soft border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Time</h2>
@@ -220,7 +224,6 @@ const Index = () => {
               </div>
             </div>
             
-            {/* Rate */}
             <div className="bg-white rounded-lg shadow-soft border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Rate</h2>
@@ -234,7 +237,6 @@ const Index = () => {
               </div>
             </div>
             
-            {/* Additional Details */}
             <div className="bg-white rounded-lg shadow-soft border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Additional Details</h2>
@@ -253,7 +255,6 @@ const Index = () => {
               </div>
             </div>
             
-            {/* Attachments */}
             <div className="bg-white rounded-lg shadow-soft border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Attachments</h2>
@@ -267,7 +268,6 @@ const Index = () => {
               </div>
             </div>
             
-            {/* History */}
             <div className="bg-white rounded-lg shadow-soft border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">History</h2>
@@ -279,7 +279,6 @@ const Index = () => {
             </div>
           </div>
           
-          {/* Right column - Contract summary */}
           <div className="lg:col-span-1">
             <div className="sticky top-24">
               <ContractSummary 
@@ -301,10 +300,20 @@ const Index = () => {
         </div>
       </main>
       
-      {/* Review Panel */}
       <ReviewPanel 
-        isOpen={isReviewPanelOpen}
+        isOpen={!useAlternativeDesign && isReviewPanelOpen}
         onClose={() => setIsReviewPanelOpen(false)}
+        onComplete={handleReviewComplete}
+        contractData={{
+          fromName: contract.from.name,
+          toName: contract.to.name,
+          rate: contract.details.rate,
+        }}
+      />
+      
+      <ReviewModal
+        isOpen={useAlternativeDesign && isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
         onComplete={handleReviewComplete}
         contractData={{
           fromName: contract.from.name,
