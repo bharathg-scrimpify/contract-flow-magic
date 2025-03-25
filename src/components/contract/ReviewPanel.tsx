@@ -6,6 +6,8 @@ import { X, AlertTriangle, Calendar, DollarSign, Clock, CheckCircle2 } from 'luc
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import PaymentSchedule from './PaymentSchedule';
+import { PaymentInterval } from '@/types/contract';
 
 interface ReviewPanelProps {
   isOpen: boolean;
@@ -18,25 +20,136 @@ interface ReviewPanelProps {
   };
 }
 
+// Mock payment plan data based on the provided JSON structure
+const mockPaymentPlans = {
+  NeedPayableAmount: {
+    CurrencyCode: "USD",
+    Value: 1000.00
+  },
+  OfferReceivableAmount: {
+    CurrencyCode: "USD",
+    Value: 950.00
+  },
+  PlatformFee: {
+    FromNeed: {
+      CurrencyCode: "USD",
+      Value: 50.00
+    },
+    FromOffer: {
+      CurrencyCode: "USD",
+      Value: 25.00
+    }
+  },
+  PaymentPlans: [
+    {
+      PaymentOption: "Full",
+      PaymentIntervals: [
+        {
+          PaymentFrequency: "Monthly",
+          Tranches: [
+            {
+              DueDate: "2025-04-01T00:00:00Z",
+              Amount: {
+                CurrencyCode: "USD",
+                Value: 500.00
+              }
+            },
+            {
+              DueDate: "2025-05-01T00:00:00Z",
+              Amount: {
+                CurrencyCode: "USD",
+                Value: 500.00
+              }
+            }
+          ]
+        },
+        {
+          PaymentFrequency: "Weekly",
+          Tranches: [
+            {
+              DueDate: "2025-04-07T00:00:00Z",
+              Amount: {
+                CurrencyCode: "USD",
+                Value: 250.00
+              }
+            },
+            {
+              DueDate: "2025-04-14T00:00:00Z",
+              Amount: {
+                CurrencyCode: "USD",
+                Value: 250.00
+              }
+            },
+            {
+              DueDate: "2025-04-21T00:00:00Z",
+              Amount: {
+                CurrencyCode: "USD",
+                Value: 250.00
+              }
+            },
+            {
+              DueDate: "2025-04-28T00:00:00Z",
+              Amount: {
+                CurrencyCode: "USD",
+                Value: 250.00
+              }
+            }
+          ]
+        },
+        {
+          PaymentFrequency: "Daily",
+          Tranches: [
+            {
+              DueDate: "2025-04-01T00:00:00Z",
+              Amount: {
+                CurrencyCode: "USD",
+                Value: 50.00
+              }
+            },
+            {
+              DueDate: "2025-04-02T00:00:00Z",
+              Amount: {
+                CurrencyCode: "USD",
+                Value: 50.00
+              }
+            },
+            {
+              DueDate: "2025-04-03T00:00:00Z",
+              Amount: {
+                CurrencyCode: "USD",
+                Value: 50.00
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+};
+
 const ReviewPanel = ({ isOpen, onClose, onComplete, contractData }: ReviewPanelProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [subscriptionActive, setSubscriptionActive] = useState(true);
   const [balanceStatus, setBalanceStatus] = useState<'sufficient' | 'insufficient'>('sufficient');
-  const [paymentType, setPaymentType] = useState<'one-time' | 'recurring'>('one-time');
+  const [paymentType, setPaymentType] = useState<'one-time' | 'partial'>('one-time');
+  const [selectedInterval, setSelectedInterval] = useState<string>('');
   const [autoPayDate, setAutoPayDate] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   
-  // Calculate fee breakdown - normally this would come from your API
-  const totalAmount = parseFloat(contractData.rate.replace('USD ', '').replace('/hour', '')) * 10; // Assuming 10 hours
-  const platformFee = totalAmount * 0.1; // 10% platform fee
-  const receiverAmount = totalAmount - platformFee;
+  // Calculate fee breakdown
+  const { NeedPayableAmount, OfferReceivableAmount, PlatformFee } = mockPaymentPlans;
+  const totalAmount = NeedPayableAmount.Value;
+  const platformFee = PlatformFee.FromNeed.Value;
+  const receiverAmount = OfferReceivableAmount.Value;
   
   // Reset steps when panel opens
   useEffect(() => {
     if (isOpen) {
       setCurrentStep(1);
       setShowSuccess(false);
+      setPaymentType('one-time');
+      setSelectedInterval('');
     }
   }, [isOpen]);
 
@@ -69,7 +182,7 @@ const ReviewPanel = ({ isOpen, onClose, onComplete, contractData }: ReviewPanelP
       setTimeout(() => {
         onComplete({
           paymentType,
-          autoPayDate: paymentType === 'recurring' ? autoPayDate : null,
+          selectedInterval: paymentType === 'partial' ? selectedInterval : null,
           totalAmount,
           platformFee,
           receiverAmount
@@ -81,12 +194,15 @@ const ReviewPanel = ({ isOpen, onClose, onComplete, contractData }: ReviewPanelP
   // If not open, don't render
   if (!isOpen) return null;
 
+  // Get the payment intervals from our mock data
+  const paymentIntervals = mockPaymentPlans.PaymentPlans[0].PaymentIntervals;
+
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
       <div className="absolute inset-0 bg-black/20 backdrop-blur-xs" onClick={onClose}></div>
       
       <div className={cn(
-        "absolute top-0 right-0 w-full sm:w-[450px] h-full bg-white shadow-elevation-3 overflow-auto transition-all duration-500 ease-out transform",
+        "absolute top-0 right-0 w-full sm:w-[550px] h-full bg-white shadow-elevation-3 overflow-auto transition-all duration-500 ease-out transform",
         isOpen ? "translate-x-0" : "translate-x-full"
       )}>
         {/* Header */}
@@ -202,7 +318,7 @@ const ReviewPanel = ({ isOpen, onClose, onComplete, contractData }: ReviewPanelP
                         <span className="font-medium">${totalAmount.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Platform Fee (10%)</span>
+                        <span className="text-gray-600">Platform Fee</span>
                         <span className="font-medium text-gray-600">-${platformFee.toFixed(2)}</span>
                       </div>
                       <div className="border-t border-gray-200 my-2 pt-2"></div>
@@ -228,7 +344,12 @@ const ReviewPanel = ({ isOpen, onClose, onComplete, contractData }: ReviewPanelP
                   
                   <RadioGroup 
                     value={paymentType} 
-                    onValueChange={(val) => setPaymentType(val as 'one-time' | 'recurring')}
+                    onValueChange={(val) => {
+                      setPaymentType(val as 'one-time' | 'partial');
+                      if (val === 'one-time') {
+                        setSelectedInterval('');
+                      }
+                    }}
                     className="space-y-4"
                   >
                     <div className="flex items-center space-x-2 border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-brand-blue transition-colors">
@@ -241,35 +362,35 @@ const ReviewPanel = ({ isOpen, onClose, onComplete, contractData }: ReviewPanelP
                     </div>
                     
                     <div className="flex items-center space-x-2 border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-brand-blue transition-colors">
-                      <RadioGroupItem value="recurring" id="recurring" />
-                      <Label htmlFor="recurring" className="flex-1 cursor-pointer">
-                        <div className="font-medium">Recurring Payment</div>
-                        <div className="text-sm text-gray-500">Set up automatic payments</div>
+                      <RadioGroupItem value="partial" id="partial" />
+                      <Label htmlFor="partial" className="flex-1 cursor-pointer">
+                        <div className="font-medium">Partial Payment</div>
+                        <div className="text-sm text-gray-500">Split your payments over time</div>
                       </Label>
-                      <Clock className="h-5 w-5 text-gray-400" />
+                      <Calendar className="h-5 w-5 text-gray-400" />
                     </div>
                   </RadioGroup>
                   
-                  {paymentType === 'recurring' && (
-                    <div className="pt-2 animate-fade-in">
-                      <Label htmlFor="auto-pay-date" className="block mb-2 text-sm font-medium">
-                        Set Auto-Pay Date
-                      </Label>
-                      <div className="flex space-x-3">
-                        <div className="relative flex-1">
-                          <Calendar className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                          <Input 
-                            id="auto-pay-date" 
-                            type="date" 
-                            value={autoPayDate} 
-                            onChange={(e) => setAutoPayDate(e.target.value)}
-                            className="pl-10"
+                  {paymentType === 'partial' && (
+                    <div className="pt-2 animate-fade-in space-y-4">
+                      <h4 className="font-medium text-gray-700">Choose a payment schedule</h4>
+                      
+                      <div className="space-y-4 mt-2">
+                        {paymentIntervals.map((interval: PaymentInterval, index: number) => (
+                          <PaymentSchedule
+                            key={index}
+                            interval={interval}
+                            selected={selectedInterval === interval.PaymentFrequency}
+                            onSelect={() => setSelectedInterval(interval.PaymentFrequency)}
                           />
-                        </div>
+                        ))}
                       </div>
-                      <p className="text-xs text-gray-500 mt-2">
-                        The payment will be automatically processed on this date every month.
-                      </p>
+                      
+                      {!selectedInterval && (
+                        <div className="text-sm text-amber-600 mt-2">
+                          Please select a payment schedule to continue
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -291,7 +412,10 @@ const ReviewPanel = ({ isOpen, onClose, onComplete, contractData }: ReviewPanelP
             
             <Button 
               onClick={nextStep}
-              disabled={isSubmitting || (currentStep === 4 && paymentType === 'recurring' && !autoPayDate)}
+              disabled={
+                isSubmitting || 
+                (currentStep === 4 && paymentType === 'partial' && !selectedInterval)
+              }
               className="bg-brand-blue hover:bg-brand-blue-dark text-white min-w-[100px]"
             >
               {isSubmitting ? (

@@ -31,6 +31,38 @@ export interface ContractHistoryItem {
   notes?: string;
 }
 
+export interface CurrencyAmount {
+  CurrencyCode: string;
+  Value: number;
+}
+
+export interface PlatformFee {
+  FromNeed: CurrencyAmount;
+  FromOffer: CurrencyAmount;
+}
+
+export interface PaymentTranche {
+  DueDate: string;
+  Amount: CurrencyAmount;
+}
+
+export interface PaymentInterval {
+  PaymentFrequency: 'Monthly' | 'Weekly' | 'Daily';
+  Tranches: PaymentTranche[];
+}
+
+export interface PaymentPlan {
+  PaymentOption: 'Full';
+  PaymentIntervals: PaymentInterval[];
+}
+
+export interface ContractPayment {
+  NeedPayableAmount: CurrencyAmount;
+  OfferReceivableAmount: CurrencyAmount;
+  PlatformFee: PlatformFee;
+  PaymentPlans: PaymentPlan[];
+}
+
 export interface Contract {
   id: string;
   subject: string;
@@ -41,6 +73,7 @@ export interface Contract {
   from: ContractParty;
   to: ContractParty;
   details: ContractDetails;
+  payment?: ContractPayment;
   attachments?: ContractAttachment[];
   history?: ContractHistoryItem[];
   createdAt: string;
