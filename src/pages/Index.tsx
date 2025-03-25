@@ -1,11 +1,12 @@
+
 import React, { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import ContractStepper, { Step } from '@/components/contract/ContractStepper';
 import ContractSummary from '@/components/contract/ContractSummary';
 import ReviewPanel from '@/components/contract/ReviewPanel';
 import ReviewModal from '@/components/contract/ReviewModal';
-import { Info, Edit, CheckCircle2 } from 'lucide-react';
-import { Contract } from '@/types/contract';
+import { Info, Edit, CheckCircle2, Calendar, DollarSign } from 'lucide-react';
+import { Contract, PaymentInterval } from '@/types/contract';
 
 const Index = () => {
   const { toast } = useToast();
@@ -20,6 +21,113 @@ const Index = () => {
     { id: 5, name: 'Pending Completion', status: 'upcoming' },
     { id: 6, name: 'Completed', status: 'upcoming' },
   ]);
+  
+  // Mock payment plans data
+  const mockPaymentPlans = {
+    NeedPayableAmount: {
+      CurrencyCode: "USD",
+      Value: 1000.00
+    },
+    OfferReceivableAmount: {
+      CurrencyCode: "USD",
+      Value: 950.00
+    },
+    PlatformFee: {
+      FromNeed: {
+        CurrencyCode: "USD",
+        Value: 50.00
+      },
+      FromOffer: {
+        CurrencyCode: "USD",
+        Value: 25.00
+      }
+    },
+    PaymentPlans: [
+      {
+        PaymentOption: "Full",
+        PaymentIntervals: [
+          {
+            PaymentFrequency: "Monthly",
+            Tranches: [
+              {
+                DueDate: "2025-04-01T00:00:00Z",
+                Amount: {
+                  CurrencyCode: "USD",
+                  Value: 500.00
+                }
+              },
+              {
+                DueDate: "2025-05-01T00:00:00Z",
+                Amount: {
+                  CurrencyCode: "USD",
+                  Value: 500.00
+                }
+              }
+            ]
+          },
+          {
+            PaymentFrequency: "Weekly",
+            Tranches: [
+              {
+                DueDate: "2025-04-07T00:00:00Z",
+                Amount: {
+                  CurrencyCode: "USD",
+                  Value: 250.00
+                }
+              },
+              {
+                DueDate: "2025-04-14T00:00:00Z",
+                Amount: {
+                  CurrencyCode: "USD",
+                  Value: 250.00
+                }
+              },
+              {
+                DueDate: "2025-04-21T00:00:00Z",
+                Amount: {
+                  CurrencyCode: "USD",
+                  Value: 250.00
+                }
+              },
+              {
+                DueDate: "2025-04-28T00:00:00Z",
+                Amount: {
+                  CurrencyCode: "USD",
+                  Value: 250.00
+                }
+              }
+            ]
+          },
+          {
+            PaymentFrequency: "Daily",
+            Tranches: [
+              {
+                DueDate: "2025-04-01T00:00:00Z",
+                Amount: {
+                  CurrencyCode: "USD",
+                  Value: 50.00
+                }
+              },
+              {
+                DueDate: "2025-04-02T00:00:00Z",
+                Amount: {
+                  CurrencyCode: "USD",
+                  Value: 50.00
+                }
+              },
+              {
+                DueDate: "2025-04-03T00:00:00Z",
+                Amount: {
+                  CurrencyCode: "USD",
+                  Value: 50.00
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  };
   
   const [contract, setContract] = useState<Contract>({
     id: 'c-12345',
@@ -43,6 +151,11 @@ const Index = () => {
       rate: 'USD 22/hour',
       mealsIncluded: true,
     },
+    payment: {
+      ...mockPaymentPlans,
+      selectedPaymentType: undefined,
+      selectedPaymentFrequency: undefined
+    },
     createdAt: '2023-09-10T10:00:00Z',
     updatedAt: '2023-09-10T10:00:00Z',
   });
@@ -60,6 +173,11 @@ const Index = () => {
       ...contract,
       status: 'pending_review',
       progress: 40,
+      payment: {
+        ...contract.payment!,
+        selectedPaymentType: data.paymentType,
+        selectedPaymentFrequency: data.paymentType === 'partial' ? data.selectedInterval : undefined
+      }
     });
     
     const updatedSteps = contractSteps.map(step => {
@@ -96,6 +214,20 @@ const Index = () => {
   const toggleDesign = () => {
     setUseAlternativeDesign(prev => !prev);
   };
+
+  // Function to find payment interval details based on frequency
+  const getPaymentIntervalDetails = (frequency?: string) => {
+    if (!frequency || !contract.payment) return null;
+    
+    const paymentInterval = contract.payment.PaymentPlans[0].PaymentIntervals.find(
+      interval => interval.PaymentFrequency === frequency
+    );
+    
+    return paymentInterval;
+  };
+
+  // Get selected payment interval details
+  const selectedPaymentInterval = getPaymentIntervalDetails(contract.payment?.selectedPaymentFrequency);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -157,6 +289,58 @@ const Index = () => {
             </p>
           </div>
         </div>
+
+        {/* Display selected payment details if available */}
+        {contract.payment?.selectedPaymentType && (
+          <div className="bg-green-50 border border-green-100 rounded-lg p-4 flex items-start mb-8 animate-fade-in">
+            {contract.payment.selectedPaymentType === 'one-time' ? (
+              <DollarSign className="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+            ) : (
+              <Calendar className="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+            )}
+            <div>
+              <p className="text-green-800 font-medium">
+                {contract.payment.selectedPaymentType === 'one-time' 
+                  ? 'One-time Payment Selected' 
+                  : `Partial Payment (${contract.payment.selectedPaymentFrequency}) Selected`}
+              </p>
+              <p className="text-sm text-green-600">
+                {contract.payment.selectedPaymentType === 'one-time'
+                  ? 'You will be charged the full amount when this contract is accepted.'
+                  : `Payments will be processed ${contract.payment.selectedPaymentFrequency?.toLowerCase()} according to the schedule.`}
+              </p>
+              
+              {/* Show payment schedule if partial payment is selected */}
+              {contract.payment.selectedPaymentType === 'partial' && selectedPaymentInterval && (
+                <div className="mt-3">
+                  <h4 className="text-sm font-medium text-green-700 mb-2">Payment Schedule:</h4>
+                  <div className="bg-white rounded-md border border-green-200 overflow-hidden">
+                    <table className="min-w-full divide-y divide-green-200">
+                      <thead className="bg-green-50">
+                        <tr>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-green-800">Due Date</th>
+                          <th className="px-3 py-2 text-right text-xs font-medium text-green-800">Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-green-100">
+                        {selectedPaymentInterval.Tranches.map((tranche, idx) => (
+                          <tr key={idx}>
+                            <td className="px-3 py-2 text-xs text-green-700">
+                              {new Date(tranche.DueDate).toLocaleDateString()}
+                            </td>
+                            <td className="px-3 py-2 text-xs text-right text-green-700">
+                              {tranche.Amount.CurrencyCode} {tranche.Amount.Value.toFixed(2)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">

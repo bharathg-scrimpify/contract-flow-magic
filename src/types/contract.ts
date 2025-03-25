@@ -61,6 +61,8 @@ export interface ContractPayment {
   OfferReceivableAmount: CurrencyAmount;
   PlatformFee: PlatformFee;
   PaymentPlans: PaymentPlan[];
+  selectedPaymentType?: 'one-time' | 'partial';
+  selectedPaymentFrequency?: 'Monthly' | 'Weekly' | 'Daily';
 }
 
 export interface Contract {
