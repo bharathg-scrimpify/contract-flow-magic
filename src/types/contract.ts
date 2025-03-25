@@ -44,6 +44,9 @@ export interface PlatformFee {
 export interface PaymentTranche {
   DueDate: string;
   Amount: CurrencyAmount;
+  Status?: 'not_paid' | 'requested' | 'paid' | 'cancelled';
+  RequestDate?: string;
+  PaymentDate?: string;
 }
 
 export interface PaymentInterval {

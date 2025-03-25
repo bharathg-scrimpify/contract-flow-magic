@@ -5,8 +5,9 @@ import ContractStepper, { Step } from '@/components/contract/ContractStepper';
 import ContractSummary from '@/components/contract/ContractSummary';
 import ReviewPanel from '@/components/contract/ReviewPanel';
 import ReviewModal from '@/components/contract/ReviewModal';
+import PaymentPlanDisplay from '@/components/contract/PaymentPlanDisplay';
 import { Info, Edit, CheckCircle2, Calendar, DollarSign } from 'lucide-react';
-import { Contract, PaymentInterval } from '@/types/contract';
+import { Contract, PaymentInterval, PaymentTranche } from '@/types/contract';
 
 const Index = () => {
   const { toast } = useToast();
@@ -44,83 +45,92 @@ const Index = () => {
     },
     PaymentPlans: [
       {
-        PaymentOption: "Full",
+        PaymentOption: "Full" as const,
         PaymentIntervals: [
           {
-            PaymentFrequency: "Monthly",
+            PaymentFrequency: "Monthly" as const,
             Tranches: [
               {
                 DueDate: "2025-04-01T00:00:00Z",
                 Amount: {
                   CurrencyCode: "USD",
                   Value: 500.00
-                }
+                },
+                Status: "not_paid" as const
               },
               {
                 DueDate: "2025-05-01T00:00:00Z",
                 Amount: {
                   CurrencyCode: "USD",
                   Value: 500.00
-                }
+                },
+                Status: "not_paid" as const
               }
             ]
           },
           {
-            PaymentFrequency: "Weekly",
+            PaymentFrequency: "Weekly" as const,
             Tranches: [
               {
                 DueDate: "2025-04-07T00:00:00Z",
                 Amount: {
                   CurrencyCode: "USD",
                   Value: 250.00
-                }
+                },
+                Status: "not_paid" as const
               },
               {
                 DueDate: "2025-04-14T00:00:00Z",
                 Amount: {
                   CurrencyCode: "USD",
                   Value: 250.00
-                }
+                },
+                Status: "not_paid" as const
               },
               {
                 DueDate: "2025-04-21T00:00:00Z",
                 Amount: {
                   CurrencyCode: "USD",
                   Value: 250.00
-                }
+                },
+                Status: "not_paid" as const
               },
               {
                 DueDate: "2025-04-28T00:00:00Z",
                 Amount: {
                   CurrencyCode: "USD",
                   Value: 250.00
-                }
+                },
+                Status: "not_paid" as const
               }
             ]
           },
           {
-            PaymentFrequency: "Daily",
+            PaymentFrequency: "Daily" as const,
             Tranches: [
               {
                 DueDate: "2025-04-01T00:00:00Z",
                 Amount: {
                   CurrencyCode: "USD",
                   Value: 50.00
-                }
+                },
+                Status: "not_paid" as const
               },
               {
                 DueDate: "2025-04-02T00:00:00Z",
                 Amount: {
                   CurrencyCode: "USD",
                   Value: 50.00
-                }
+                },
+                Status: "not_paid" as const
               },
               {
                 DueDate: "2025-04-03T00:00:00Z",
                 Amount: {
                   CurrencyCode: "USD",
                   Value: 50.00
-                }
+                },
+                Status: "not_paid" as const
               }
             ]
           }
@@ -169,15 +179,18 @@ const Index = () => {
   };
 
   const handleReviewComplete = (data: any) => {
+    // Create a copy of the contract payment object
+    const updatedPayment = { ...contract.payment! };
+
+    // Select the payment type and frequency
+    updatedPayment.selectedPaymentType = data.paymentType;
+    updatedPayment.selectedPaymentFrequency = data.paymentType === 'partial' ? data.selectedInterval : undefined;
+
     setContract({
       ...contract,
       status: 'pending_review',
       progress: 40,
-      payment: {
-        ...contract.payment!,
-        selectedPaymentType: data.paymentType,
-        selectedPaymentFrequency: data.paymentType === 'partial' ? data.selectedInterval : undefined
-      }
+      payment: updatedPayment
     });
     
     const updatedSteps = contractSteps.map(step => {
@@ -229,6 +242,88 @@ const Index = () => {
   // Get selected payment interval details
   const selectedPaymentInterval = getPaymentIntervalDetails(contract.payment?.selectedPaymentFrequency);
 
+  // Handle payment actions
+  const handleRequestPayment = (trancheIndex: number) => {
+    if (!selectedPaymentInterval) return;
+    
+    // Create a deep copy of the contract
+    const updatedContract = { ...contract };
+    if (!updatedContract.payment) return;
+    
+    // Find the specific payment interval
+    const intervalIndex = updatedContract.payment.PaymentPlans[0].PaymentIntervals.findIndex(
+      interval => interval.PaymentFrequency === updatedContract.payment?.selectedPaymentFrequency
+    );
+    
+    if (intervalIndex === -1) return;
+    
+    // Update the tranche status
+    updatedContract.payment.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[trancheIndex].Status = 'requested';
+    updatedContract.payment.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[trancheIndex].RequestDate = new Date().toISOString();
+    
+    setContract(updatedContract);
+    
+    toast({
+      title: "Payment Requested",
+      description: `Payment request has been sent to ${contract.from.name}.`,
+    });
+  };
+  
+  const handleApprovePayment = (trancheIndex: number) => {
+    if (!selectedPaymentInterval) return;
+    
+    // Create a deep copy of the contract
+    const updatedContract = { ...contract };
+    if (!updatedContract.payment) return;
+    
+    // Find the specific payment interval
+    const intervalIndex = updatedContract.payment.PaymentPlans[0].PaymentIntervals.findIndex(
+      interval => interval.PaymentFrequency === updatedContract.payment?.selectedPaymentFrequency
+    );
+    
+    if (intervalIndex === -1) return;
+    
+    // Update the tranche status
+    updatedContract.payment.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[trancheIndex].Status = 'paid';
+    updatedContract.payment.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[trancheIndex].PaymentDate = new Date().toISOString();
+    
+    setContract(updatedContract);
+    
+    toast({
+      title: "Payment Successful",
+      description: `Your payment has been processed successfully.`,
+    });
+  };
+  
+  const handleCancelPayment = (trancheIndex: number) => {
+    if (!selectedPaymentInterval) return;
+    
+    // Create a deep copy of the contract
+    const updatedContract = { ...contract };
+    if (!updatedContract.payment) return;
+    
+    // Find the specific payment interval
+    const intervalIndex = updatedContract.payment.PaymentPlans[0].PaymentIntervals.findIndex(
+      interval => interval.PaymentFrequency === updatedContract.payment?.selectedPaymentFrequency
+    );
+    
+    if (intervalIndex === -1) return;
+    
+    // Update the tranche status
+    updatedContract.payment.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[trancheIndex].Status = 'cancelled';
+    
+    setContract(updatedContract);
+    
+    toast({
+      title: "Payment Cancelled",
+      description: `You have cancelled the payment request.`,
+      variant: "destructive",
+    });
+  };
+
+  // For demo purposes, we'll use a boolean to toggle between From/To user views
+  const [isFromUser, setIsFromUser] = useState(true);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
@@ -264,16 +359,25 @@ const Index = () => {
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-semibold">Contract</h1>
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
-              Draft
+              {contract.status.replace('_', ' ').toUpperCase()}
             </span>
           </div>
           
-          <button 
-            onClick={toggleDesign}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Switch to {useAlternativeDesign ? 'Slide-in Panel' : 'Modal Dialog'}
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsFromUser(!isFromUser)}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            >
+              Switch to {isFromUser ? '"To" User View' : '"From" User View'}
+            </button>
+            
+            <button 
+              onClick={toggleDesign}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Switch to {useAlternativeDesign ? 'Slide-in Panel' : 'Modal Dialog'}
+            </button>
+          </div>
         </div>
 
         <div className="bg-white rounded-lg shadow-soft border border-gray-100 p-8 mb-8">
@@ -292,54 +396,15 @@ const Index = () => {
 
         {/* Display selected payment details if available */}
         {contract.payment?.selectedPaymentType && (
-          <div className="bg-green-50 border border-green-100 rounded-lg p-4 flex items-start mb-8 animate-fade-in">
-            {contract.payment.selectedPaymentType === 'one-time' ? (
-              <DollarSign className="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
-            ) : (
-              <Calendar className="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
-            )}
-            <div>
-              <p className="text-green-800 font-medium">
-                {contract.payment.selectedPaymentType === 'one-time' 
-                  ? 'One-time Payment Selected' 
-                  : `Partial Payment (${contract.payment.selectedPaymentFrequency}) Selected`}
-              </p>
-              <p className="text-sm text-green-600">
-                {contract.payment.selectedPaymentType === 'one-time'
-                  ? 'You will be charged the full amount when this contract is accepted.'
-                  : `Payments will be processed ${contract.payment.selectedPaymentFrequency?.toLowerCase()} according to the schedule.`}
-              </p>
-              
-              {/* Show payment schedule if partial payment is selected */}
-              {contract.payment.selectedPaymentType === 'partial' && selectedPaymentInterval && (
-                <div className="mt-3">
-                  <h4 className="text-sm font-medium text-green-700 mb-2">Payment Schedule:</h4>
-                  <div className="bg-white rounded-md border border-green-200 overflow-hidden">
-                    <table className="min-w-full divide-y divide-green-200">
-                      <thead className="bg-green-50">
-                        <tr>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-green-800">Due Date</th>
-                          <th className="px-3 py-2 text-right text-xs font-medium text-green-800">Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-green-100">
-                        {selectedPaymentInterval.Tranches.map((tranche, idx) => (
-                          <tr key={idx}>
-                            <td className="px-3 py-2 text-xs text-green-700">
-                              {new Date(tranche.DueDate).toLocaleDateString()}
-                            </td>
-                            <td className="px-3 py-2 text-xs text-right text-green-700">
-                              {tranche.Amount.CurrencyCode} {tranche.Amount.Value.toFixed(2)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          <PaymentPlanDisplay 
+            paymentType={contract.payment.selectedPaymentType}
+            paymentFrequency={contract.payment.selectedPaymentFrequency}
+            interval={selectedPaymentInterval}
+            isFromUser={isFromUser}
+            onRequestPayment={handleRequestPayment}
+            onApprovePayment={handleApprovePayment}
+            onCancelPayment={handleCancelPayment}
+          />
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
