@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -16,9 +15,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, ChevronRight, Save, Trash, Users, FileText, CalendarDays, DollarSign, History, PaperClip } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronRight, Save, Trash, Users, FileText, CalendarDays, DollarSign, History, Paperclip } from 'lucide-react';
 
-// Mock contract data - in a real app, you'd fetch this from an API
 const getMockContract = (): Contract => ({
   id: 'c-12345',
   subject: 'Contract Template',
@@ -168,7 +166,6 @@ const AdminContractEditor = () => {
   const [activeTab, setActiveTab] = useState('general');
   const [isEditing, setIsEditing] = useState(false);
   
-  // Function to format date display
   const formatDate = (dateStr: string) => {
     try {
       return format(new Date(dateStr), 'MMM d, yyyy, h:mm a');
@@ -228,7 +225,6 @@ const AdminContractEditor = () => {
     
     updatedContract.payment.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[trancheIndex].Status = newStatus;
     
-    // Add dates based on status
     if (newStatus === 'requested') {
       updatedContract.payment.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[trancheIndex].RequestDate = new Date().toISOString();
     } else if (newStatus === 'paid') {
@@ -299,7 +295,6 @@ const AdminContractEditor = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar */}
           <div className="lg:col-span-1">
             <Card>
               <CardHeader className="pb-3">
@@ -363,7 +358,6 @@ const AdminContractEditor = () => {
             </Card>
           </div>
           
-          {/* Main Content */}
           <div className="lg:col-span-3">
             <Tabs defaultValue="general" value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid grid-cols-5 mb-6">
@@ -389,7 +383,6 @@ const AdminContractEditor = () => {
                 </TabsTrigger>
               </TabsList>
               
-              {/* General Tab */}
               <TabsContent value="general">
                 <Card>
                   <CardHeader>
@@ -435,7 +428,6 @@ const AdminContractEditor = () => {
                 </Card>
               </TabsContent>
               
-              {/* Parties Tab */}
               <TabsContent value="parties">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Card>
@@ -548,7 +540,6 @@ const AdminContractEditor = () => {
                 </div>
               </TabsContent>
               
-              {/* Details Tab */}
               <TabsContent value="details">
                 <Card>
                   <CardHeader>
@@ -628,7 +619,6 @@ const AdminContractEditor = () => {
                 </Card>
               </TabsContent>
               
-              {/* Payments Tab */}
               <TabsContent value="payments">
                 <Card>
                   <CardHeader>
@@ -772,7 +762,6 @@ const AdminContractEditor = () => {
                                         );
                                         if (intervalIndex === -1) return;
                                         
-                                        // Only remove if there's more than one tranche
                                         if (updatedContract.payment!.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches.length > 1) {
                                           updatedContract.payment!.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches.splice(index, 1);
                                           setContract(updatedContract);
@@ -807,11 +796,9 @@ const AdminContractEditor = () => {
                               );
                               if (intervalIndex === -1) return;
                               
-                              // Get the last tranche to copy values from
                               const tranches = updatedContract.payment!.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches;
                               const lastTranche = tranches[tranches.length - 1];
                               
-                              // Add a new tranche with similar values but next date
                               const newDueDate = new Date(lastTranche.DueDate);
                               if (contract.payment!.selectedPaymentFrequency === 'Daily') {
                                 newDueDate.setDate(newDueDate.getDate() + 1);
@@ -905,7 +892,6 @@ const AdminContractEditor = () => {
                 </Card>
               </TabsContent>
               
-              {/* Attachments Tab */}
               <TabsContent value="attachments">
                 <Card>
                   <CardHeader>
