@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import ContractStepper, { Step } from '@/components/contract/ContractStepper';
@@ -849,4 +850,106 @@ const Index = () => {
                         <Input 
                           id="rate" 
                           value={formState.details.rate} 
-                          onChange={(e) => handleFormChange('details',
+                          onChange={(e) => handleFormChange('details', 'rate', e.target.value)}
+                        />
+                      </div>
+                      <div className="flex items-center justify-end gap-2 mt-4">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setEditingSections({...editingSections, rate: false})}
+                          className="gap-1"
+                        >
+                          <X className="h-4 w-4" />
+                          Cancel
+                        </Button>
+                        <Button 
+                          variant="default" 
+                          size="sm" 
+                          onClick={() => toggleEditSection('rate')}
+                          className="gap-1"
+                        >
+                          <Save className="h-4 w-4" />
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <dl className="divide-y divide-gray-100">
+                      <div className="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                        <dt className="text-sm font-medium text-gray-500">Rate</dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{contract.details.rate}</dd>
+                      </div>
+                    </dl>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+          
+          <div className="space-y-6">
+            {/* Additional section for the right panel */}
+            <Card className="shadow-sm border-gray-200">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-medium">Contract Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button 
+                  className="w-full" 
+                  onClick={handleSendForReview}
+                >
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  Send for Review
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleDownloadPdf}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  Download PDF
+                </Button>
+                
+                <Button
+                  variant="destructive"
+                  className="w-full"
+                  onClick={handleDeleteContract}
+                >
+                  <X className="mr-2 h-4 w-4" />
+                  Delete Contract
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </main>
+      
+      {isReviewPanelOpen && (
+        <ReviewPanel 
+          isOpen={isReviewPanelOpen}
+          onClose={() => setIsReviewPanelOpen(false)}
+          onComplete={handleReviewComplete}
+          contractData={{
+            fromName: contract.from.name,
+            toName: contract.to.name,
+            rate: contract.details.rate
+          }}
+        />
+      )}
+      
+      <ReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        onComplete={handleReviewComplete}
+        contractData={{
+          fromName: contract.from.name,
+          toName: contract.to.name,
+          rate: contract.details.rate
+        }}
+      />
+    </div>
+  );
+};
+
+export default Index;
