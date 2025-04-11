@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import ContractStepper, { Step } from '@/components/contract/ContractStepper';
@@ -766,4 +767,421 @@ const Index = () => {
               </TabsContent>
               
               <TabsContent value="details" className="space-y-6">
-                <div className="bg-
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl overflow-hidden shadow-elevation-1 border border-purple-100 transition-all hover:shadow-elevation-2">
+                    <div className="flex justify-between items-center bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4 text-white">
+                      <h3 className="font-medium flex items-center gap-2">
+                        <MapPin className="h-5 w-5" />
+                        Place of Service
+                      </h3>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => toggleEditSection('place')}
+                        className="h-8 gap-1 text-white hover:bg-white/20"
+                      >
+                        {editingSections.place ? (
+                          <>
+                            <Save className="h-4 w-4" />
+                            <span>Save</span>
+                          </>
+                        ) : (
+                          <>
+                            <Edit className="h-4 w-4" />
+                            <span>Edit</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <div className="p-6">
+                      {editingSections.place ? (
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="placeOfService">Address</Label>
+                            <Textarea 
+                              id="placeOfService" 
+                              value={formState.details.placeOfService} 
+                              onChange={(e) => handleFormChange('details', 'placeOfService', e.target.value)}
+                              className="border-purple-200 focus:border-purple-400 resize-none"
+                              rows={4}
+                            />
+                          </div>
+                          <div className="flex items-center justify-end gap-2 mt-4">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => setEditingSections({...editingSections, place: false})}
+                              className="gap-1"
+                            >
+                              <X className="h-4 w-4" />
+                              Cancel
+                            </Button>
+                            <Button 
+                              variant="default" 
+                              size="sm" 
+                              onClick={() => toggleEditSection('place')}
+                              className="gap-1 bg-gradient-to-r from-purple-500 to-pink-500"
+                            >
+                              <Save className="h-4 w-4" />
+                              Save
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-purple-50">
+                          <p className="whitespace-pre-wrap">{contract.details.placeOfService}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl overflow-hidden shadow-elevation-1 border border-blue-100 transition-all hover:shadow-elevation-2">
+                    <div className="flex justify-between items-center bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-4 text-white">
+                      <h3 className="font-medium flex items-center gap-2">
+                        <Clock className="h-5 w-5" />
+                        Time Frame
+                      </h3>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => toggleEditSection('time')}
+                        className="h-8 gap-1 text-white hover:bg-white/20"
+                      >
+                        {editingSections.time ? (
+                          <>
+                            <Save className="h-4 w-4" />
+                            <span>Save</span>
+                          </>
+                        ) : (
+                          <>
+                            <Edit className="h-4 w-4" />
+                            <span>Edit</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <div className="p-6">
+                      {editingSections.time ? (
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="startDate">Start Date & Time</Label>
+                            <Input 
+                              id="startDate" 
+                              value={formState.details.startDate} 
+                              onChange={(e) => handleFormChange('details', 'startDate', e.target.value)}
+                              className="border-blue-200 focus:border-blue-400"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="endDate">End Date & Time</Label>
+                            <Input 
+                              id="endDate" 
+                              value={formState.details.endDate} 
+                              onChange={(e) => handleFormChange('details', 'endDate', e.target.value)}
+                              className="border-blue-200 focus:border-blue-400"
+                            />
+                          </div>
+                          <div className="flex items-center justify-end gap-2 mt-4">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => setEditingSections({...editingSections, time: false})}
+                              className="gap-1"
+                            >
+                              <X className="h-4 w-4" />
+                              Cancel
+                            </Button>
+                            <Button 
+                              variant="default" 
+                              size="sm" 
+                              onClick={() => toggleEditSection('time')}
+                              className="gap-1 bg-gradient-to-r from-blue-500 to-cyan-500"
+                            >
+                              <Save className="h-4 w-4" />
+                              Save
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <dl className="grid gap-4">
+                          <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-blue-50">
+                            <dt className="text-gray-500 text-sm">From</dt>
+                            <dd className="font-medium mt-1">{contract.details.startDate}</dd>
+                          </div>
+                          <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-blue-50">
+                            <dt className="text-gray-500 text-sm">To</dt>
+                            <dd className="mt-1">{contract.details.endDate}</dd>
+                          </div>
+                        </dl>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl overflow-hidden shadow-elevation-1 border border-green-100 transition-all hover:shadow-elevation-2">
+                    <div className="flex justify-between items-center bg-gradient-to-r from-green-500 to-emerald-500 px-6 py-4 text-white">
+                      <h3 className="font-medium flex items-center gap-2">
+                        <DollarSign className="h-5 w-5" />
+                        Rate
+                      </h3>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => toggleEditSection('rate')}
+                        className="h-8 gap-1 text-white hover:bg-white/20"
+                      >
+                        {editingSections.rate ? (
+                          <>
+                            <Save className="h-4 w-4" />
+                            <span>Save</span>
+                          </>
+                        ) : (
+                          <>
+                            <Edit className="h-4 w-4" />
+                            <span>Edit</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <div className="p-6">
+                      {editingSections.rate ? (
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="rate">Rate</Label>
+                            <Input 
+                              id="rate" 
+                              value={formState.details.rate} 
+                              onChange={(e) => handleFormChange('details', 'rate', e.target.value)}
+                              className="border-green-200 focus:border-green-400"
+                              placeholder="e.g. USD 25/hour"
+                            />
+                          </div>
+                          <div className="flex items-center justify-end gap-2 mt-4">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => setEditingSections({...editingSections, rate: false})}
+                              className="gap-1"
+                            >
+                              <X className="h-4 w-4" />
+                              Cancel
+                            </Button>
+                            <Button 
+                              variant="default" 
+                              size="sm" 
+                              onClick={() => toggleEditSection('rate')}
+                              className="gap-1 bg-gradient-to-r from-green-500 to-emerald-500"
+                            >
+                              <Save className="h-4 w-4" />
+                              Save
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-green-50">
+                          <p className="text-2xl font-medium text-green-700">{contract.details.rate}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl overflow-hidden shadow-elevation-1 border border-amber-100 transition-all hover:shadow-elevation-2">
+                    <div className="flex justify-between items-center bg-gradient-to-r from-amber-500 to-yellow-500 px-6 py-4 text-white">
+                      <h3 className="font-medium flex items-center gap-2">
+                        <FileText className="h-5 w-5" />
+                        Additional Details
+                      </h3>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => toggleEditSection('additionalDetails')}
+                        className="h-8 gap-1 text-white hover:bg-white/20"
+                      >
+                        {editingSections.additionalDetails ? (
+                          <>
+                            <Save className="h-4 w-4" />
+                            <span>Save</span>
+                          </>
+                        ) : (
+                          <>
+                            <Edit className="h-4 w-4" />
+                            <span>Edit</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <div className="p-6">
+                      {editingSections.additionalDetails ? (
+                        <div className="space-y-4">
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              id="mealsIncluded"
+                              checked={formState.details.mealsIncluded as boolean}
+                              onCheckedChange={(checked) => handleFormChange('details', 'mealsIncluded', checked)}
+                            />
+                            <Label htmlFor="mealsIncluded">Meals included</Label>
+                          </div>
+                          <div className="flex items-center justify-end gap-2 mt-4">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => setEditingSections({...editingSections, additionalDetails: false})}
+                              className="gap-1"
+                            >
+                              <X className="h-4 w-4" />
+                              Cancel
+                            </Button>
+                            <Button 
+                              variant="default" 
+                              size="sm" 
+                              onClick={() => toggleEditSection('additionalDetails')}
+                              className="gap-1 bg-gradient-to-r from-amber-500 to-yellow-500"
+                            >
+                              <Save className="h-4 w-4" />
+                              Save
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-amber-50">
+                          <dl className="grid gap-2">
+                            <div className="flex items-center">
+                              <dt className="text-gray-500 text-sm mr-2">Meals:</dt>
+                              <dd>{contract.details.mealsIncluded ? 'Included' : 'Not included'}</dd>
+                            </div>
+                          </dl>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="other" className="space-y-6">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="bg-gradient-to-br from-gray-50 to-slate-50 rounded-2xl overflow-hidden shadow-elevation-1 border border-gray-200 transition-all hover:shadow-elevation-2">
+                    <div className="flex justify-between items-center bg-gradient-to-r from-gray-600 to-slate-700 px-6 py-4 text-white">
+                      <h3 className="font-medium flex items-center gap-2">
+                        <Paperclip className="h-5 w-5" />
+                        Attachments
+                      </h3>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 gap-1 text-white hover:bg-white/20"
+                      >
+                        <span>Add</span>
+                      </Button>
+                    </div>
+                    <div className="p-6">
+                      <div className="p-8 rounded-lg bg-white/70 backdrop-blur-sm border border-gray-100 flex flex-col items-center justify-center">
+                        <p className="text-gray-500 text-center">No attachments yet</p>
+                        <Button 
+                          className="mt-4 bg-gradient-to-r from-gray-500 to-slate-600 hover:from-gray-600 hover:to-slate-700"
+                        >
+                          Upload Attachment
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl overflow-hidden shadow-elevation-1 border border-slate-200 transition-all hover:shadow-elevation-2">
+                    <div className="flex justify-between items-center bg-gradient-to-r from-slate-700 to-blue-700 px-6 py-4 text-white">
+                      <h3 className="font-medium flex items-center gap-2">
+                        <History className="h-5 w-5" />
+                        Activity History
+                      </h3>
+                    </div>
+                    <div className="p-6">
+                      <div className="space-y-4">
+                        <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-slate-100">
+                          <div className="flex items-start">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-medium shadow-sm mr-3 flex-shrink-0">
+                              ST
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">Contract created</p>
+                              <p className="text-xs text-gray-500">{new Date(contract.createdAt).toLocaleString()}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-slate-100">
+                          <div className="flex items-start">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white font-medium shadow-sm mr-3 flex-shrink-0">
+                              MH
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">Contract viewed</p>
+                              <p className="text-xs text-gray-500">{new Date(contract.updatedAt).toLocaleString()}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+        
+          <div className="lg:col-span-1">
+            <Card className="sticky top-24 glass-panel border-blue-100">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center">
+                  <FileText className="h-5 w-5 text-blue-500 mr-2" />
+                  Contract Preview
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ContractSummary contract={contract} />
+                
+                <div className="mt-6 flex flex-col gap-3">
+                  <Button 
+                    className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 transition-all"
+                    onClick={handleSendForReview}
+                  >
+                    Send For Review
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full border-blue-200 text-blue-700 hover:bg-blue-50"
+                    onClick={handleDownloadPdf}
+                  >
+                    Download PDF
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full border-red-200 text-red-600 hover:bg-red-50 mt-2"
+                    onClick={handleDeleteContract}
+                  >
+                    Delete Contract
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </main>
+      
+      {isReviewPanelOpen && (
+        <ReviewPanel 
+          contract={contract}
+          onClose={() => setIsReviewPanelOpen(false)}
+          onComplete={handleReviewComplete}
+        />
+      )}
+      
+      {isReviewModalOpen && (
+        <ReviewModal
+          contract={contract}
+          open={isReviewModalOpen}
+          onOpenChange={setIsReviewModalOpen}
+          onComplete={handleReviewComplete}
+        />
+      )}
+    </div>
+  );
+};
+
+export default Index;
