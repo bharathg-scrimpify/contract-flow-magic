@@ -78,7 +78,9 @@ export default {
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				sm: 'calc(var(--radius) - 4px)',
+				xl: '1rem',
+				'2xl': '1.5rem',
 			},
 			keyframes: {
 				'accordion-down': {
@@ -122,14 +124,17 @@ export default {
 				'slide-out-right': 'slideOutRight 0.4s ease-out',
 				'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
 				shimmer: 'shimmer 2s linear infinite',
-				scale: 'scale 0.15s ease-out'
+				scale: 'scale 0.15s ease-out',
+				'hover-scale': 'scale 0.15s ease-out',
 			},
 			boxShadow: {
 				'soft': '0 4px 20px rgba(0, 0, 0, 0.04)',
-				'elevation-1': '0 2px 4px rgba(0, 0, 0, 0.05)',
-				'elevation-2': '0 4px 8px rgba(0, 0, 0, 0.06)',
+				'elevation-1': '0 2px 6px rgba(0, 0, 0, 0.05)',
+				'elevation-2': '0 4px 10px rgba(0, 0, 0, 0.07)',
 				'elevation-3': '0 8px 16px rgba(0, 0, 0, 0.08)',
-				'glow-blue': '0 0 20px rgba(0, 116, 224, 0.15)'
+				'glow-blue': '0 0 20px rgba(0, 116, 224, 0.15)',
+				'glow-purple': '0 0 20px rgba(139, 92, 246, 0.15)',
+				'glow-green': '0 0 20px rgba(16, 185, 129, 0.15)',
 			},
 			backdropBlur: {
 				xs: '2px',

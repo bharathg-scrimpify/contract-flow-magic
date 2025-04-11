@@ -18,7 +18,11 @@ import {
   Clock, 
   FileText, 
   Paperclip, 
-  History
+  History,
+  Zap,
+  Sparkles,
+  Star,
+  Heart
 } from 'lucide-react';
 import { Contract, PaymentInterval, PaymentTranche } from '@/types/contract';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,6 +41,7 @@ const Index = () => {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [useAlternativeDesign, setUseAlternativeDesign] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [isFromUser, setIsFromUser] = useState(true);
   const [editingSections, setEditingSections] = useState({
     from: false,
     to: false,
@@ -391,33 +396,31 @@ const Index = () => {
     }));
   };
 
-  const isFromUser = true;
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+      <header className="bg-white border-b border-blue-100 sticky top-0 z-30 shadow-sm">
         <div className="container flex justify-between items-center h-16 px-4 md:px-6">
           <div className="flex items-center">
-            <a href="/" className="text-xl font-bold text-blue-600">
+            <a href="/" className="text-xl font-bold bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent">
               Eveniopro
             </a>
           </div>
           
           <div className="flex gap-4 items-center">
-            <a href="/offers" className="flex items-center px-3 py-1.5 text-sm">
+            <a href="/offers" className="flex items-center px-3 py-1.5 text-sm hover:text-blue-600 transition-colors">
               Offers
             </a>
-            <a href="/home" className="flex items-center px-3 py-1.5 text-sm">
+            <a href="/home" className="flex items-center px-3 py-1.5 text-sm hover:text-blue-600 transition-colors">
               Home
             </a>
-            <a href="/dashboard" className="flex items-center px-3 py-1.5 text-sm">
+            <a href="/dashboard" className="flex items-center px-3 py-1.5 text-sm hover:text-blue-600 transition-colors">
               Dashboard
             </a>
             <div className="ml-4 relative flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-medium shadow-md">
                 ST
               </div>
-              <span className="text-sm">Sai Teja</span>
+              <span className="text-sm font-medium">Sai Teja</span>
             </div>
           </div>
         </div>
@@ -426,8 +429,8 @@ const Index = () => {
       <main className="container px-4 py-8 md:px-6">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold">Contract</h1>
-            <Badge variant="outline" className="text-blue-800 bg-blue-50 border-blue-200">
+            <h1 className="text-2xl font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Contract</h1>
+            <Badge variant="outline" className="text-blue-800 bg-blue-50 border-blue-200 animate-pulse-slow">
               {contract.status.replace('_', ' ').toUpperCase()}
             </Badge>
           </div>
@@ -436,7 +439,7 @@ const Index = () => {
             <Button
               onClick={() => setIsFromUser(!isFromUser)}
               variant="outline"
-              className="bg-green-50 text-green-600 border-green-200 hover:bg-green-100"
+              className="bg-green-50 text-green-600 border-green-200 hover:bg-green-100 transition-all hover:scale-105"
             >
               Switch to {isFromUser ? '"To" User View' : '"From" User View'}
             </Button>
@@ -444,18 +447,18 @@ const Index = () => {
             <Button 
               onClick={toggleDesign}
               variant="outline"
-              className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100"
+              className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 transition-all hover:scale-105"
             >
               Switch to {useAlternativeDesign ? 'Slide-in Panel' : 'Modal Dialog'}
             </Button>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-soft border border-gray-100 p-8 mb-8">
+        <div className="glass-panel rounded-xl shadow-elevation-2 p-8 mb-8 animate-fade-in">
           <ContractStepper steps={contractSteps} />
         </div>
 
-        <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start mb-8 animate-fade-in">
+        <div className="bg-gradient-to-r from-blue-100 via-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-4 flex items-start mb-8 animate-fade-in shadow-elevation-1">
           <Info className="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
           <div>
             <p className="text-blue-800 font-medium">Confirm the details, add your signature and send for review.</p>
@@ -480,51 +483,67 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="mb-4 grid grid-cols-4 gap-2 bg-gray-100 p-1">
-                <TabsTrigger value="overview" className="data-[state=active]:bg-white">
+              <TabsList className="mb-4 grid grid-cols-4 gap-2 bg-white/80 backdrop-blur-sm shadow-elevation-1 rounded-xl p-1 border border-blue-100">
+                <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white rounded-lg transition-all">
                   <FileText className="w-4 h-4 mr-2" />
                   Overview
                 </TabsTrigger>
-                <TabsTrigger value="parties" className="data-[state=active]:bg-white">
+                <TabsTrigger value="parties" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white rounded-lg transition-all">
                   <User className="w-4 h-4 mr-2" />
                   Parties
                 </TabsTrigger>
-                <TabsTrigger value="details" className="data-[state=active]:bg-white">
+                <TabsTrigger value="details" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white rounded-lg transition-all">
                   <MapPin className="w-4 h-4 mr-2" />
                   Details
                 </TabsTrigger>
-                <TabsTrigger value="other" className="data-[state=active]:bg-white">
+                <TabsTrigger value="other" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white rounded-lg transition-all">
                   <Paperclip className="w-4 h-4 mr-2" />
                   Other
                 </TabsTrigger>
               </TabsList>
               
               <TabsContent value="overview" className="space-y-6">
-                <Card>
+                <Card className="glass-panel border-blue-100 overflow-hidden">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-200/20 to-indigo-300/20 rounded-bl-full -z-10"></div>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium">Contract Summary</CardTitle>
+                    <CardTitle className="text-lg font-medium flex items-center">
+                      <Sparkles className="h-5 w-5 text-blue-500 mr-2" />
+                      Contract Summary
+                    </CardTitle>
                     <CheckCircle2 className="h-5 w-5 text-green-500" />
                   </CardHeader>
                   <CardContent className="pt-4">
                     <dl className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <dt className="text-gray-500">Contract Type</dt>
+                      <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-blue-50 transition-all hover:shadow-sm">
+                        <dt className="text-gray-500 flex items-center gap-1">
+                          <FileText className="h-3.5 w-3.5" />
+                          Contract Type
+                        </dt>
                         <dd className="font-medium">{contract.type}</dd>
                       </div>
-                      <div>
-                        <dt className="text-gray-500">Facilitated By</dt>
+                      <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-blue-50 transition-all hover:shadow-sm">
+                        <dt className="text-gray-500 flex items-center gap-1">
+                          <Star className="h-3.5 w-3.5" />
+                          Facilitated By
+                        </dt>
                         <dd className="font-medium">{contract.facilitatedBy}</dd>
                       </div>
-                      <div>
-                        <dt className="text-gray-500">Created</dt>
+                      <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-blue-50 transition-all hover:shadow-sm">
+                        <dt className="text-gray-500 flex items-center gap-1">
+                          <Calendar className="h-3.5 w-3.5" />
+                          Created
+                        </dt>
                         <dd className="font-medium">
                           {new Date(contract.createdAt).toLocaleDateString()}
                         </dd>
                       </div>
-                      <div>
-                        <dt className="text-gray-500">Status</dt>
+                      <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-blue-50 transition-all hover:shadow-sm">
+                        <dt className="text-gray-500 flex items-center gap-1">
+                          <Zap className="h-3.5 w-3.5" />
+                          Status
+                        </dt>
                         <dd>
-                          <Badge variant="outline" className="font-normal">
+                          <Badge variant="outline" className="font-normal bg-white/50">
                             {contract.status.replace('_', ' ').toUpperCase()}
                           </Badge>
                         </dd>
@@ -534,9 +553,13 @@ const Index = () => {
                 </Card>
                 
                 <div className="grid gap-6 md:grid-cols-2">
-                  <Card>
+                  <Card className="glass-panel border-blue-100 overflow-hidden">
+                    <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-green-200/20 to-blue-300/20 rounded-br-full -z-10"></div>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-lg font-medium">Contract Progress</CardTitle>
+                      <CardTitle className="text-lg font-medium flex items-center">
+                        <Heart className="h-5 w-5 text-pink-500 mr-2" />
+                        Contract Progress
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-4">
                       <div className="space-y-2">
@@ -544,9 +567,9 @@ const Index = () => {
                           <span>Progress</span>
                           <span className="font-medium">{contract.progress}%</span>
                         </div>
-                        <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
+                        <div className="h-2 w-full rounded-full bg-blue-100 overflow-hidden">
                           <div 
-                            className="h-full rounded-full bg-blue-500" 
+                            className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500" 
                             style={{ width: `${contract.progress}%` }}
                           ></div>
                         </div>
@@ -554,13 +577,16 @@ const Index = () => {
                     </CardContent>
                   </Card>
                   
-                  <Card>
+                  <Card className="glass-panel border-blue-100 overflow-hidden">
+                    <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-tl from-indigo-200/20 to-blue-300/20 rounded-tl-full -z-10"></div>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-lg font-medium">Contract Value</CardTitle>
-                      <DollarSign className="h-5 w-5 text-green-500" />
+                      <CardTitle className="text-lg font-medium flex items-center">
+                        <DollarSign className="h-5 w-5 text-green-500 mr-2" />
+                        Contract Value
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-4">
-                      <div className="text-2xl font-bold">{contract.details.rate}</div>
+                      <div className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">{contract.details.rate}</div>
                       <p className="text-sm text-gray-500 mt-1">
                         From {contract.details.startDate} to {contract.details.endDate}
                       </p>
@@ -570,381 +596,174 @@ const Index = () => {
               </TabsContent>
               
               <TabsContent value="parties" className="space-y-6">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium">Contract From</CardTitle>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => toggleEditSection('from')}
-                      className="h-8 gap-1"
-                    >
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl overflow-hidden shadow-elevation-1 border border-blue-100 transition-all hover:shadow-elevation-2">
+                    <div className="flex justify-between items-center bg-gradient-to-r from-blue-500 to-indigo-500 px-6 py-4 text-white">
+                      <h3 className="font-medium flex items-center gap-2">
+                        <User className="h-5 w-5" />
+                        Contract From
+                      </h3>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => toggleEditSection('from')}
+                        className="h-8 gap-1 text-white hover:bg-white/20"
+                      >
+                        {editingSections.from ? (
+                          <>
+                            <Save className="h-4 w-4" />
+                            <span>Save</span>
+                          </>
+                        ) : (
+                          <>
+                            <Edit className="h-4 w-4" />
+                            <span>Edit</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <div className="p-6">
                       {editingSections.from ? (
-                        <>
-                          <Save className="h-4 w-4" />
-                          <span>Save</span>
-                        </>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="fromName">Name</Label>
+                            <Input 
+                              id="fromName" 
+                              value={formState.from.name} 
+                              onChange={(e) => handleFormChange('from', 'name', e.target.value)}
+                              className="border-blue-200 focus:border-blue-400"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="fromEmail">Email</Label>
+                            <Input 
+                              id="fromEmail" 
+                              type="email" 
+                              value={formState.from.email} 
+                              onChange={(e) => handleFormChange('from', 'email', e.target.value)}
+                              className="border-blue-200 focus:border-blue-400"
+                            />
+                          </div>
+                          <div className="flex items-center justify-end gap-2 mt-4">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => setEditingSections({...editingSections, from: false})}
+                              className="gap-1"
+                            >
+                              <X className="h-4 w-4" />
+                              Cancel
+                            </Button>
+                            <Button 
+                              variant="default" 
+                              size="sm" 
+                              onClick={() => toggleEditSection('from')}
+                              className="gap-1"
+                            >
+                              <Save className="h-4 w-4" />
+                              Save
+                            </Button>
+                          </div>
+                        </div>
                       ) : (
-                        <>
-                          <Edit className="h-4 w-4" />
-                          <span>Edit</span>
-                        </>
+                        <dl className="grid gap-4">
+                          <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-blue-50">
+                            <dt className="text-gray-500 text-sm">Name</dt>
+                            <dd className="font-medium mt-1">{contract.from.name}</dd>
+                          </div>
+                          <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-blue-50">
+                            <dt className="text-gray-500 text-sm">Email</dt>
+                            <dd className="mt-1">{contract.from.email}</dd>
+                          </div>
+                        </dl>
                       )}
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    {editingSections.from ? (
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="fromName">Name</Label>
-                          <Input 
-                            id="fromName" 
-                            value={formState.from.name} 
-                            onChange={(e) => handleFormChange('from', 'name', e.target.value)}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="fromEmail">Email</Label>
-                          <Input 
-                            id="fromEmail" 
-                            type="email" 
-                            value={formState.from.email} 
-                            onChange={(e) => handleFormChange('from', 'email', e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <dl className="space-y-2">
-                        <div>
-                          <dt className="text-gray-500 text-sm">Name</dt>
-                          <dd className="font-medium">{contract.from.name}</dd>
-                        </div>
-                        <div>
-                          <dt className="text-gray-500 text-sm">Email</dt>
-                          <dd>{contract.from.email}</dd>
-                        </div>
-                      </dl>
-                    )}
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium">Contract To</CardTitle>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => toggleEditSection('to')}
-                      className="h-8 gap-1"
-                    >
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl overflow-hidden shadow-elevation-1 border border-indigo-100 transition-all hover:shadow-elevation-2">
+                    <div className="flex justify-between items-center bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-4 text-white">
+                      <h3 className="font-medium flex items-center gap-2">
+                        <User className="h-5 w-5" />
+                        Contract To
+                      </h3>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => toggleEditSection('to')}
+                        className="h-8 gap-1 text-white hover:bg-white/20"
+                      >
+                        {editingSections.to ? (
+                          <>
+                            <Save className="h-4 w-4" />
+                            <span>Save</span>
+                          </>
+                        ) : (
+                          <>
+                            <Edit className="h-4 w-4" />
+                            <span>Edit</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <div className="p-6">
                       {editingSections.to ? (
-                        <>
-                          <Save className="h-4 w-4" />
-                          <span>Save</span>
-                        </>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="toName">Name</Label>
+                            <Input 
+                              id="toName" 
+                              value={formState.to.name} 
+                              onChange={(e) => handleFormChange('to', 'name', e.target.value)}
+                              className="border-indigo-200 focus:border-indigo-400"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="toEmail">Email</Label>
+                            <Input 
+                              id="toEmail" 
+                              type="email" 
+                              value={formState.to.email} 
+                              onChange={(e) => handleFormChange('to', 'email', e.target.value)}
+                              className="border-indigo-200 focus:border-indigo-400"
+                            />
+                          </div>
+                          <div className="flex items-center justify-end gap-2 mt-4">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => setEditingSections({...editingSections, to: false})}
+                              className="gap-1"
+                            >
+                              <X className="h-4 w-4" />
+                              Cancel
+                            </Button>
+                            <Button 
+                              variant="default" 
+                              size="sm" 
+                              onClick={() => toggleEditSection('to')}
+                              className="gap-1 bg-gradient-to-r from-indigo-500 to-purple-500"
+                            >
+                              <Save className="h-4 w-4" />
+                              Save
+                            </Button>
+                          </div>
+                        </div>
                       ) : (
-                        <>
-                          <Edit className="h-4 w-4" />
-                          <span>Edit</span>
-                        </>
+                        <dl className="grid gap-4">
+                          <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-indigo-50">
+                            <dt className="text-gray-500 text-sm">Name</dt>
+                            <dd className="font-medium mt-1">{contract.to.name}</dd>
+                          </div>
+                          <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-indigo-50">
+                            <dt className="text-gray-500 text-sm">Email</dt>
+                            <dd className="mt-1">{contract.to.email}</dd>
+                          </div>
+                        </dl>
                       )}
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    {editingSections.to ? (
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="toName">Name</Label>
-                          <Input 
-                            id="toName" 
-                            value={formState.to.name} 
-                            onChange={(e) => handleFormChange('to', 'name', e.target.value)}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="toEmail">Email</Label>
-                          <Input 
-                            id="toEmail" 
-                            type="email" 
-                            value={formState.to.email} 
-                            onChange={(e) => handleFormChange('to', 'email', e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <dl className="space-y-2">
-                        <div>
-                          <dt className="text-gray-500 text-sm">Name</dt>
-                          <dd className="font-medium">{contract.to.name}</dd>
-                        </div>
-                        <div>
-                          <dt className="text-gray-500 text-sm">Email</dt>
-                          <dd>{contract.to.email}</dd>
-                        </div>
-                      </dl>
-                    )}
-                  </CardContent>
-                </Card>
+                    </div>
+                  </div>
+                </div>
               </TabsContent>
               
               <TabsContent value="details" className="space-y-6">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium">Place of Service</CardTitle>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => toggleEditSection('place')}
-                      className="h-8 gap-1"
-                    >
-                      {editingSections.place ? (
-                        <>
-                          <Save className="h-4 w-4" />
-                          <span>Save</span>
-                        </>
-                      ) : (
-                        <>
-                          <Edit className="h-4 w-4" />
-                          <span>Edit</span>
-                        </>
-                      )}
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    {editingSections.place ? (
-                      <div className="space-y-2">
-                        <Label htmlFor="place">Address</Label>
-                        <Textarea 
-                          id="place" 
-                          value={formState.details.placeOfService} 
-                          onChange={(e) => handleFormChange('details', 'placeOfService', e.target.value)}
-                          rows={3}
-                        />
-                      </div>
-                    ) : (
-                      <p className="text-gray-800">{contract.details.placeOfService}</p>
-                    )}
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium">Time</CardTitle>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => toggleEditSection('time')}
-                      className="h-8 gap-1"
-                    >
-                      {editingSections.time ? (
-                        <>
-                          <Save className="h-4 w-4" />
-                          <span>Save</span>
-                        </>
-                      ) : (
-                        <>
-                          <Edit className="h-4 w-4" />
-                          <span>Edit</span>
-                        </>
-                      )}
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    {editingSections.time ? (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="startDate">Start Date</Label>
-                          <Input 
-                            id="startDate" 
-                            value={formState.details.startDate} 
-                            onChange={(e) => handleFormChange('details', 'startDate', e.target.value)}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="endDate">End Date</Label>
-                          <Input 
-                            id="endDate" 
-                            value={formState.details.endDate} 
-                            onChange={(e) => handleFormChange('details', 'endDate', e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-gray-500">Start Date</p>
-                          <p className="text-gray-800">{contract.details.startDate}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">End Date</p>
-                          <p className="text-gray-800">{contract.details.endDate}</p>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium">Rate</CardTitle>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => toggleEditSection('rate')}
-                      className="h-8 gap-1"
-                    >
-                      {editingSections.rate ? (
-                        <>
-                          <Save className="h-4 w-4" />
-                          <span>Save</span>
-                        </>
-                      ) : (
-                        <>
-                          <Edit className="h-4 w-4" />
-                          <span>Edit</span>
-                        </>
-                      )}
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    {editingSections.rate ? (
-                      <div className="space-y-2">
-                        <Label htmlFor="rate">Hourly Rate</Label>
-                        <Input 
-                          id="rate" 
-                          value={formState.details.rate} 
-                          onChange={(e) => handleFormChange('details', 'rate', e.target.value)}
-                        />
-                      </div>
-                    ) : (
-                      <p className="text-gray-800">{contract.details.rate}</p>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="other" className="space-y-6">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium">Additional Details</CardTitle>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => toggleEditSection('additionalDetails')}
-                      className="h-8 gap-1"
-                    >
-                      {editingSections.additionalDetails ? (
-                        <>
-                          <Save className="h-4 w-4" />
-                          <span>Save</span>
-                        </>
-                      ) : (
-                        <>
-                          <Edit className="h-4 w-4" />
-                          <span>Edit</span>
-                        </>
-                      )}
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    {editingSections.additionalDetails ? (
-                      <div className="flex items-center space-x-2">
-                        <Switch 
-                          id="mealsIncluded" 
-                          checked={formState.details.mealsIncluded}
-                          onCheckedChange={(checked) => handleFormChange('details', 'mealsIncluded', checked)}
-                        />
-                        <Label htmlFor="mealsIncluded">Meals Included</Label>
-                      </div>
-                    ) : (
-                      <div className="flex items-center">
-                        <p className="text-gray-800">Meals Included: </p>
-                        <span className="ml-2 text-gray-800">
-                          {contract.details.mealsIncluded ? 'Yes' : 'No'}
-                        </span>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium">Attachments</CardTitle>
-                    <Button variant="ghost" size="sm" className="h-8 gap-1">
-                      <Paperclip className="h-4 w-4" />
-                      <span>Add</span>
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="pt-4 text-center">
-                    <div className="py-8 border border-dashed rounded-lg">
-                      <Paperclip className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500">No attachments added</p>
-                      <Button variant="outline" size="sm" className="mt-2">
-                        Upload File
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium">History</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    <div className="text-center py-6">
-                      <History className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500">No history available</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
-          
-          <div className="lg:col-span-1">
-            <div className="sticky top-24">
-              <ContractSummary 
-                contract={{
-                  subject: contract.subject,
-                  type: contract.type,
-                  facilitatedBy: contract.facilitatedBy,
-                  from: contract.from,
-                  to: contract.to,
-                  details: contract.details,
-                  progress: contract.progress,
-                }}
-                onSendForReview={handleSendForReview}
-                onDelete={handleDeleteContract}
-                onDownloadPdf={handleDownloadPdf}
-              />
-            </div>
-          </div>
-        </div>
-      </main>
-      
-      <ReviewPanel 
-        isOpen={!useAlternativeDesign && isReviewPanelOpen}
-        onClose={() => setIsReviewPanelOpen(false)}
-        onComplete={handleReviewComplete}
-        contractData={{
-          fromName: contract.from.name,
-          toName: contract.to.name,
-          rate: contract.details.rate,
-        }}
-      />
-      
-      <ReviewModal
-        isOpen={useAlternativeDesign && isReviewModalOpen}
-        onClose={() => setIsReviewModalOpen(false)}
-        onComplete={handleReviewComplete}
-        contractData={{
-          fromName: contract.from.name,
-          toName: contract.to.name,
-          rate: contract.details.rate,
-        }}
-      />
-    </div>
-  );
-};
-
-export default Index;
+                <div className="bg-
