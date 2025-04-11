@@ -78,9 +78,7 @@ export default {
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)',
-				xl: '1rem',
-				'2xl': '1.5rem',
+				sm: 'calc(var(--radius) - 4px)'
 			},
 			keyframes: {
 				'accordion-down': {
@@ -106,6 +104,14 @@ export default {
 				pulse: {
 					'0%, 100%': { opacity: '1' },
 					'50%': { opacity: '0.5' }
+				},
+				shimmer: {
+					'0%': { backgroundPosition: '-200% 0' },
+					'100%': { backgroundPosition: '200% 0' }
+				},
+				scale: {
+					'0%': { transform: 'scale(0.95)' },
+					'100%': { transform: 'scale(1)' }
 				}
 			},
 			animation: {
@@ -115,12 +121,22 @@ export default {
 				'slide-in-right': 'slideInRight 0.4s ease-out',
 				'slide-out-right': 'slideOutRight 0.4s ease-out',
 				'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+				shimmer: 'shimmer 2s linear infinite',
+				scale: 'scale 0.15s ease-out'
 			},
 			boxShadow: {
 				'soft': '0 4px 20px rgba(0, 0, 0, 0.04)',
-				'elevation-1': '0 2px 6px rgba(0, 0, 0, 0.05)',
-				'elevation-2': '0 4px 10px rgba(0, 0, 0, 0.07)',
+				'elevation-1': '0 2px 4px rgba(0, 0, 0, 0.05)',
+				'elevation-2': '0 4px 8px rgba(0, 0, 0, 0.06)',
 				'elevation-3': '0 8px 16px rgba(0, 0, 0, 0.08)',
+				'glow-blue': '0 0 20px rgba(0, 116, 224, 0.15)'
+			},
+			backdropBlur: {
+				xs: '2px',
+			},
+			backgroundImage: {
+				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+				'shimmer': 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 50%, transparent 100%)',
 			}
 		}
 	},
