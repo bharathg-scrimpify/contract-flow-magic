@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -378,7 +379,7 @@ const AdminContractEditor = () => {
                   Payments
                 </TabsTrigger>
                 <TabsTrigger value="attachments">
-                  <PaperClip className="w-4 h-4 mr-2" />
+                  <Paperclip className="w-4 h-4 mr-2" />
                   Attachments
                 </TabsTrigger>
               </TabsList>
@@ -900,7 +901,7 @@ const AdminContractEditor = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="text-center py-8 border border-dashed rounded-lg bg-gray-50">
-                      <PaperClip className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <Paperclip className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                       <p className="text-gray-500">Drag and drop files here or click to browse</p>
                       <Button variant="outline" className="mt-4">Add Attachment</Button>
                     </div>
