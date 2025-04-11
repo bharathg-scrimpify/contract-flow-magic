@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import ContractStepper, { Step } from '@/components/contract/ContractStepper';
@@ -18,7 +17,7 @@ import {
   MapPin, 
   Clock, 
   FileText, 
-  Paperclip, 
+  Paperclip,
   History,
   Zap,
   Sparkles,
@@ -35,6 +34,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const Index = () => {
   const { toast } = useToast();
@@ -398,11 +398,11 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-      <header className="bg-white border-b border-blue-100 sticky top-0 z-30 shadow-sm">
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
         <div className="container flex justify-between items-center h-16 px-4 md:px-6">
           <div className="flex items-center">
-            <a href="/" className="text-xl font-bold bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent">
+            <a href="/" className="text-xl font-bold text-blue-600">
               Eveniopro
             </a>
           </div>
@@ -418,7 +418,7 @@ const Index = () => {
               Dashboard
             </a>
             <div className="ml-4 relative flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-medium shadow-md">
+              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
                 ST
               </div>
               <span className="text-sm font-medium">Sai Teja</span>
@@ -430,8 +430,8 @@ const Index = () => {
       <main className="container px-4 py-8 md:px-6">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Contract</h1>
-            <Badge variant="outline" className="text-blue-800 bg-blue-50 border-blue-200 animate-pulse-slow">
+            <h1 className="text-2xl font-semibold text-gray-900">Contract</h1>
+            <Badge variant="outline" className="text-blue-600 bg-blue-50 border-blue-200">
               {contract.status.replace('_', ' ').toUpperCase()}
             </Badge>
           </div>
@@ -440,7 +440,7 @@ const Index = () => {
             <Button
               onClick={() => setIsFromUser(!isFromUser)}
               variant="outline"
-              className="bg-green-50 text-green-600 border-green-200 hover:bg-green-100 transition-all hover:scale-105"
+              className="bg-green-50 text-green-600 border-green-200 hover:bg-green-100"
             >
               Switch to {isFromUser ? '"To" User View' : '"From" User View'}
             </Button>
@@ -448,18 +448,18 @@ const Index = () => {
             <Button 
               onClick={toggleDesign}
               variant="outline"
-              className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 transition-all hover:scale-105"
+              className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100"
             >
               Switch to {useAlternativeDesign ? 'Slide-in Panel' : 'Modal Dialog'}
             </Button>
           </div>
         </div>
 
-        <div className="glass-panel rounded-xl shadow-elevation-2 p-8 mb-8 animate-fade-in">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
           <ContractStepper steps={contractSteps} />
         </div>
 
-        <div className="bg-gradient-to-r from-blue-100 via-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-4 flex items-start mb-8 animate-fade-in shadow-elevation-1">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start mb-8">
           <Info className="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
           <div>
             <p className="text-blue-800 font-medium">Confirm the details, add your signature and send for review.</p>
@@ -483,705 +483,370 @@ const Index = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="mb-4 grid grid-cols-4 gap-2 bg-white/80 backdrop-blur-sm shadow-elevation-1 rounded-xl p-1 border border-blue-100">
-                <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white rounded-lg transition-all">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Overview
-                </TabsTrigger>
-                <TabsTrigger value="parties" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white rounded-lg transition-all">
-                  <User className="w-4 h-4 mr-2" />
-                  Parties
-                </TabsTrigger>
-                <TabsTrigger value="details" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white rounded-lg transition-all">
-                  <MapPin className="w-4 h-4 mr-2" />
-                  Details
-                </TabsTrigger>
-                <TabsTrigger value="other" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white rounded-lg transition-all">
-                  <Paperclip className="w-4 h-4 mr-2" />
-                  Other
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="overview" className="space-y-6">
-                <Card className="glass-panel border-blue-100 overflow-hidden">
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-200/20 to-indigo-300/20 rounded-bl-full -z-10"></div>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium flex items-center">
-                      <Sparkles className="h-5 w-5 text-blue-500 mr-2" />
-                      Contract Summary
-                    </CardTitle>
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    <dl className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-blue-50 transition-all hover:shadow-sm">
-                        <dt className="text-gray-500 flex items-center gap-1">
-                          <FileText className="h-3.5 w-3.5" />
-                          Contract Type
-                        </dt>
-                        <dd className="font-medium">{contract.type}</dd>
-                      </div>
-                      <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-blue-50 transition-all hover:shadow-sm">
-                        <dt className="text-gray-500 flex items-center gap-1">
-                          <Star className="h-3.5 w-3.5" />
-                          Facilitated By
-                        </dt>
-                        <dd className="font-medium">{contract.facilitatedBy}</dd>
-                      </div>
-                      <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-blue-50 transition-all hover:shadow-sm">
-                        <dt className="text-gray-500 flex items-center gap-1">
-                          <Calendar className="h-3.5 w-3.5" />
-                          Created
-                        </dt>
-                        <dd className="font-medium">
-                          {new Date(contract.createdAt).toLocaleDateString()}
-                        </dd>
-                      </div>
-                      <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-blue-50 transition-all hover:shadow-sm">
-                        <dt className="text-gray-500 flex items-center gap-1">
-                          <Zap className="h-3.5 w-3.5" />
-                          Status
-                        </dt>
-                        <dd>
-                          <Badge variant="outline" className="font-normal bg-white/50">
-                            {contract.status.replace('_', ' ').toUpperCase()}
-                          </Badge>
-                        </dd>
-                      </div>
-                    </dl>
-                  </CardContent>
-                </Card>
-                
-                <div className="grid gap-6 md:grid-cols-2">
-                  <Card className="glass-panel border-blue-100 overflow-hidden">
-                    <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-green-200/20 to-blue-300/20 rounded-br-full -z-10"></div>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-lg font-medium flex items-center">
-                        <Heart className="h-5 w-5 text-pink-500 mr-2" />
-                        Contract Progress
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Progress</span>
-                          <span className="font-medium">{contract.progress}%</span>
-                        </div>
-                        <div className="h-2 w-full rounded-full bg-blue-100 overflow-hidden">
-                          <div 
-                            className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500" 
-                            style={{ width: `${contract.progress}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="glass-panel border-blue-100 overflow-hidden">
-                    <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-tl from-indigo-200/20 to-blue-300/20 rounded-tl-full -z-10"></div>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-lg font-medium flex items-center">
-                        <DollarSign className="h-5 w-5 text-green-500 mr-2" />
-                        Contract Value
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                      <div className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">{contract.details.rate}</div>
-                      <p className="text-sm text-gray-500 mt-1">
-                        From {contract.details.startDate} to {contract.details.endDate}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="parties" className="space-y-6">
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl overflow-hidden shadow-elevation-1 border border-blue-100 transition-all hover:shadow-elevation-2">
-                    <div className="flex justify-between items-center bg-gradient-to-r from-blue-500 to-indigo-500 px-6 py-4 text-white">
-                      <h3 className="font-medium flex items-center gap-2">
-                        <User className="h-5 w-5" />
-                        Contract From
-                      </h3>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => toggleEditSection('from')}
-                        className="h-8 gap-1 text-white hover:bg-white/20"
-                      >
-                        {editingSections.from ? (
-                          <>
-                            <Save className="h-4 w-4" />
-                            <span>Save</span>
-                          </>
-                        ) : (
-                          <>
-                            <Edit className="h-4 w-4" />
-                            <span>Edit</span>
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                    <div className="p-6">
+            <Accordion type="single" collapsible className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <AccordionItem value="from">
+                <AccordionTrigger className="px-6 py-4 hover:bg-gray-50 flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <User className="h-4 w-4 text-blue-500" />
+                    Contract From
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-base font-medium text-gray-700">From Details</h3>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => toggleEditSection('from')}
+                      className="h-8 gap-1 text-blue-600 hover:bg-blue-50"
+                    >
                       {editingSections.from ? (
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="fromName">Name</Label>
-                            <Input 
-                              id="fromName" 
-                              value={formState.from.name} 
-                              onChange={(e) => handleFormChange('from', 'name', e.target.value)}
-                              className="border-blue-200 focus:border-blue-400"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="fromEmail">Email</Label>
-                            <Input 
-                              id="fromEmail" 
-                              type="email" 
-                              value={formState.from.email} 
-                              onChange={(e) => handleFormChange('from', 'email', e.target.value)}
-                              className="border-blue-200 focus:border-blue-400"
-                            />
-                          </div>
-                          <div className="flex items-center justify-end gap-2 mt-4">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => setEditingSections({...editingSections, from: false})}
-                              className="gap-1"
-                            >
-                              <X className="h-4 w-4" />
-                              Cancel
-                            </Button>
-                            <Button 
-                              variant="default" 
-                              size="sm" 
-                              onClick={() => toggleEditSection('from')}
-                              className="gap-1"
-                            >
-                              <Save className="h-4 w-4" />
-                              Save
-                            </Button>
-                          </div>
-                        </div>
+                        <>
+                          <Save className="h-4 w-4" />
+                          <span>Save</span>
+                        </>
                       ) : (
-                        <dl className="grid gap-4">
-                          <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-blue-50">
-                            <dt className="text-gray-500 text-sm">Name</dt>
-                            <dd className="font-medium mt-1">{contract.from.name}</dd>
-                          </div>
-                          <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-blue-50">
-                            <dt className="text-gray-500 text-sm">Email</dt>
-                            <dd className="mt-1">{contract.from.email}</dd>
-                          </div>
-                        </dl>
+                        <>
+                          <Edit className="h-4 w-4" />
+                          <span>Edit</span>
+                        </>
                       )}
-                    </div>
+                    </Button>
                   </div>
                   
-                  <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl overflow-hidden shadow-elevation-1 border border-indigo-100 transition-all hover:shadow-elevation-2">
-                    <div className="flex justify-between items-center bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-4 text-white">
-                      <h3 className="font-medium flex items-center gap-2">
-                        <User className="h-5 w-5" />
-                        Contract To
-                      </h3>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => toggleEditSection('to')}
-                        className="h-8 gap-1 text-white hover:bg-white/20"
-                      >
-                        {editingSections.to ? (
-                          <>
-                            <Save className="h-4 w-4" />
-                            <span>Save</span>
-                          </>
-                        ) : (
-                          <>
-                            <Edit className="h-4 w-4" />
-                            <span>Edit</span>
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                    <div className="p-6">
-                      {editingSections.to ? (
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="toName">Name</Label>
-                            <Input 
-                              id="toName" 
-                              value={formState.to.name} 
-                              onChange={(e) => handleFormChange('to', 'name', e.target.value)}
-                              className="border-indigo-200 focus:border-indigo-400"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="toEmail">Email</Label>
-                            <Input 
-                              id="toEmail" 
-                              type="email" 
-                              value={formState.to.email} 
-                              onChange={(e) => handleFormChange('to', 'email', e.target.value)}
-                              className="border-indigo-200 focus:border-indigo-400"
-                            />
-                          </div>
-                          <div className="flex items-center justify-end gap-2 mt-4">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => setEditingSections({...editingSections, to: false})}
-                              className="gap-1"
-                            >
-                              <X className="h-4 w-4" />
-                              Cancel
-                            </Button>
-                            <Button 
-                              variant="default" 
-                              size="sm" 
-                              onClick={() => toggleEditSection('to')}
-                              className="gap-1 bg-gradient-to-r from-indigo-500 to-purple-500"
-                            >
-                              <Save className="h-4 w-4" />
-                              Save
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <dl className="grid gap-4">
-                          <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-indigo-50">
-                            <dt className="text-gray-500 text-sm">Name</dt>
-                            <dd className="font-medium mt-1">{contract.to.name}</dd>
-                          </div>
-                          <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-indigo-50">
-                            <dt className="text-gray-500 text-sm">Email</dt>
-                            <dd className="mt-1">{contract.to.email}</dd>
-                          </div>
-                        </dl>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="details" className="space-y-6">
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl overflow-hidden shadow-elevation-1 border border-purple-100 transition-all hover:shadow-elevation-2">
-                    <div className="flex justify-between items-center bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4 text-white">
-                      <h3 className="font-medium flex items-center gap-2">
-                        <MapPin className="h-5 w-5" />
-                        Place of Service
-                      </h3>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => toggleEditSection('place')}
-                        className="h-8 gap-1 text-white hover:bg-white/20"
-                      >
-                        {editingSections.place ? (
-                          <>
-                            <Save className="h-4 w-4" />
-                            <span>Save</span>
-                          </>
-                        ) : (
-                          <>
-                            <Edit className="h-4 w-4" />
-                            <span>Edit</span>
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                    <div className="p-6">
-                      {editingSections.place ? (
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="placeOfService">Address</Label>
-                            <Textarea 
-                              id="placeOfService" 
-                              value={formState.details.placeOfService} 
-                              onChange={(e) => handleFormChange('details', 'placeOfService', e.target.value)}
-                              className="border-purple-200 focus:border-purple-400 resize-none"
-                              rows={4}
-                            />
-                          </div>
-                          <div className="flex items-center justify-end gap-2 mt-4">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => setEditingSections({...editingSections, place: false})}
-                              className="gap-1"
-                            >
-                              <X className="h-4 w-4" />
-                              Cancel
-                            </Button>
-                            <Button 
-                              variant="default" 
-                              size="sm" 
-                              onClick={() => toggleEditSection('place')}
-                              className="gap-1 bg-gradient-to-r from-purple-500 to-pink-500"
-                            >
-                              <Save className="h-4 w-4" />
-                              Save
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-purple-50">
-                          <p className="whitespace-pre-wrap">{contract.details.placeOfService}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl overflow-hidden shadow-elevation-1 border border-blue-100 transition-all hover:shadow-elevation-2">
-                    <div className="flex justify-between items-center bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-4 text-white">
-                      <h3 className="font-medium flex items-center gap-2">
-                        <Clock className="h-5 w-5" />
-                        Time Frame
-                      </h3>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => toggleEditSection('time')}
-                        className="h-8 gap-1 text-white hover:bg-white/20"
-                      >
-                        {editingSections.time ? (
-                          <>
-                            <Save className="h-4 w-4" />
-                            <span>Save</span>
-                          </>
-                        ) : (
-                          <>
-                            <Edit className="h-4 w-4" />
-                            <span>Edit</span>
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                    <div className="p-6">
-                      {editingSections.time ? (
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="startDate">Start Date & Time</Label>
-                            <Input 
-                              id="startDate" 
-                              value={formState.details.startDate} 
-                              onChange={(e) => handleFormChange('details', 'startDate', e.target.value)}
-                              className="border-blue-200 focus:border-blue-400"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="endDate">End Date & Time</Label>
-                            <Input 
-                              id="endDate" 
-                              value={formState.details.endDate} 
-                              onChange={(e) => handleFormChange('details', 'endDate', e.target.value)}
-                              className="border-blue-200 focus:border-blue-400"
-                            />
-                          </div>
-                          <div className="flex items-center justify-end gap-2 mt-4">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => setEditingSections({...editingSections, time: false})}
-                              className="gap-1"
-                            >
-                              <X className="h-4 w-4" />
-                              Cancel
-                            </Button>
-                            <Button 
-                              variant="default" 
-                              size="sm" 
-                              onClick={() => toggleEditSection('time')}
-                              className="gap-1 bg-gradient-to-r from-blue-500 to-cyan-500"
-                            >
-                              <Save className="h-4 w-4" />
-                              Save
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <dl className="grid gap-4">
-                          <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-blue-50">
-                            <dt className="text-gray-500 text-sm">From</dt>
-                            <dd className="font-medium mt-1">{contract.details.startDate}</dd>
-                          </div>
-                          <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-blue-50">
-                            <dt className="text-gray-500 text-sm">To</dt>
-                            <dd className="mt-1">{contract.details.endDate}</dd>
-                          </div>
-                        </dl>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl overflow-hidden shadow-elevation-1 border border-green-100 transition-all hover:shadow-elevation-2">
-                    <div className="flex justify-between items-center bg-gradient-to-r from-green-500 to-emerald-500 px-6 py-4 text-white">
-                      <h3 className="font-medium flex items-center gap-2">
-                        <DollarSign className="h-5 w-5" />
-                        Rate
-                      </h3>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => toggleEditSection('rate')}
-                        className="h-8 gap-1 text-white hover:bg-white/20"
-                      >
-                        {editingSections.rate ? (
-                          <>
-                            <Save className="h-4 w-4" />
-                            <span>Save</span>
-                          </>
-                        ) : (
-                          <>
-                            <Edit className="h-4 w-4" />
-                            <span>Edit</span>
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                    <div className="p-6">
-                      {editingSections.rate ? (
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="rate">Rate</Label>
-                            <Input 
-                              id="rate" 
-                              value={formState.details.rate} 
-                              onChange={(e) => handleFormChange('details', 'rate', e.target.value)}
-                              className="border-green-200 focus:border-green-400"
-                              placeholder="e.g. USD 25/hour"
-                            />
-                          </div>
-                          <div className="flex items-center justify-end gap-2 mt-4">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => setEditingSections({...editingSections, rate: false})}
-                              className="gap-1"
-                            >
-                              <X className="h-4 w-4" />
-                              Cancel
-                            </Button>
-                            <Button 
-                              variant="default" 
-                              size="sm" 
-                              onClick={() => toggleEditSection('rate')}
-                              className="gap-1 bg-gradient-to-r from-green-500 to-emerald-500"
-                            >
-                              <Save className="h-4 w-4" />
-                              Save
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-green-50">
-                          <p className="text-2xl font-medium text-green-700">{contract.details.rate}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl overflow-hidden shadow-elevation-1 border border-amber-100 transition-all hover:shadow-elevation-2">
-                    <div className="flex justify-between items-center bg-gradient-to-r from-amber-500 to-yellow-500 px-6 py-4 text-white">
-                      <h3 className="font-medium flex items-center gap-2">
-                        <FileText className="h-5 w-5" />
-                        Additional Details
-                      </h3>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => toggleEditSection('additionalDetails')}
-                        className="h-8 gap-1 text-white hover:bg-white/20"
-                      >
-                        {editingSections.additionalDetails ? (
-                          <>
-                            <Save className="h-4 w-4" />
-                            <span>Save</span>
-                          </>
-                        ) : (
-                          <>
-                            <Edit className="h-4 w-4" />
-                            <span>Edit</span>
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                    <div className="p-6">
-                      {editingSections.additionalDetails ? (
-                        <div className="space-y-4">
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              id="mealsIncluded"
-                              checked={formState.details.mealsIncluded as boolean}
-                              onCheckedChange={(checked) => handleFormChange('details', 'mealsIncluded', checked)}
-                            />
-                            <Label htmlFor="mealsIncluded">Meals included</Label>
-                          </div>
-                          <div className="flex items-center justify-end gap-2 mt-4">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => setEditingSections({...editingSections, additionalDetails: false})}
-                              className="gap-1"
-                            >
-                              <X className="h-4 w-4" />
-                              Cancel
-                            </Button>
-                            <Button 
-                              variant="default" 
-                              size="sm" 
-                              onClick={() => toggleEditSection('additionalDetails')}
-                              className="gap-1 bg-gradient-to-r from-amber-500 to-yellow-500"
-                            >
-                              <Save className="h-4 w-4" />
-                              Save
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-amber-50">
-                          <dl className="grid gap-2">
-                            <div className="flex items-center">
-                              <dt className="text-gray-500 text-sm mr-2">Meals:</dt>
-                              <dd>{contract.details.mealsIncluded ? 'Included' : 'Not included'}</dd>
-                            </div>
-                          </dl>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="other" className="space-y-6">
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="bg-gradient-to-br from-gray-50 to-slate-50 rounded-2xl overflow-hidden shadow-elevation-1 border border-gray-200 transition-all hover:shadow-elevation-2">
-                    <div className="flex justify-between items-center bg-gradient-to-r from-gray-600 to-slate-700 px-6 py-4 text-white">
-                      <h3 className="font-medium flex items-center gap-2">
-                        <Paperclip className="h-5 w-5" />
-                        Attachments
-                      </h3>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-8 gap-1 text-white hover:bg-white/20"
-                      >
-                        <span>Add</span>
-                      </Button>
-                    </div>
-                    <div className="p-6">
-                      <div className="p-8 rounded-lg bg-white/70 backdrop-blur-sm border border-gray-100 flex flex-col items-center justify-center">
-                        <p className="text-gray-500 text-center">No attachments yet</p>
+                  {editingSections.from ? (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="fromName">Name</Label>
+                        <Input 
+                          id="fromName" 
+                          value={formState.from.name} 
+                          onChange={(e) => handleFormChange('from', 'name', e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="fromEmail">Email</Label>
+                        <Input 
+                          id="fromEmail" 
+                          type="email" 
+                          value={formState.from.email} 
+                          onChange={(e) => handleFormChange('from', 'email', e.target.value)}
+                        />
+                      </div>
+                      <div className="flex items-center justify-end gap-2 mt-4">
                         <Button 
-                          className="mt-4 bg-gradient-to-r from-gray-500 to-slate-600 hover:from-gray-600 hover:to-slate-700"
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setEditingSections({...editingSections, from: false})}
+                          className="gap-1"
                         >
-                          Upload Attachment
+                          <X className="h-4 w-4" />
+                          Cancel
+                        </Button>
+                        <Button 
+                          variant="default" 
+                          size="sm" 
+                          onClick={() => toggleEditSection('from')}
+                          className="gap-1"
+                        >
+                          <Save className="h-4 w-4" />
+                          Save
                         </Button>
                       </div>
                     </div>
+                  ) : (
+                    <dl className="divide-y divide-gray-100">
+                      <div className="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                        <dt className="text-sm font-medium text-gray-500">Name</dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{contract.from.name}</dd>
+                      </div>
+                      <div className="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                        <dt className="text-sm font-medium text-gray-500">Email</dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{contract.from.email}</dd>
+                      </div>
+                    </dl>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="to">
+                <AccordionTrigger className="px-6 py-4 hover:bg-gray-50 flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <User className="h-4 w-4 text-blue-500" />
+                    Contract To
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-base font-medium text-gray-700">To Details</h3>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => toggleEditSection('to')}
+                      className="h-8 gap-1 text-blue-600 hover:bg-blue-50"
+                    >
+                      {editingSections.to ? (
+                        <>
+                          <Save className="h-4 w-4" />
+                          <span>Save</span>
+                        </>
+                      ) : (
+                        <>
+                          <Edit className="h-4 w-4" />
+                          <span>Edit</span>
+                        </>
+                      )}
+                    </Button>
                   </div>
                   
-                  <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl overflow-hidden shadow-elevation-1 border border-slate-200 transition-all hover:shadow-elevation-2">
-                    <div className="flex justify-between items-center bg-gradient-to-r from-slate-700 to-blue-700 px-6 py-4 text-white">
-                      <h3 className="font-medium flex items-center gap-2">
-                        <History className="h-5 w-5" />
-                        Activity History
-                      </h3>
-                    </div>
-                    <div className="p-6">
-                      <div className="space-y-4">
-                        <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-slate-100">
-                          <div className="flex items-start">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-medium shadow-sm mr-3 flex-shrink-0">
-                              ST
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium">Contract created</p>
-                              <p className="text-xs text-gray-500">{new Date(contract.createdAt).toLocaleString()}</p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-slate-100">
-                          <div className="flex items-start">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white font-medium shadow-sm mr-3 flex-shrink-0">
-                              MH
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium">Contract viewed</p>
-                              <p className="text-xs text-gray-500">{new Date(contract.updatedAt).toLocaleString()}</p>
-                            </div>
-                          </div>
-                        </div>
+                  {editingSections.to ? (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="toName">Name</Label>
+                        <Input 
+                          id="toName" 
+                          value={formState.to.name} 
+                          onChange={(e) => handleFormChange('to', 'name', e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="toEmail">Email</Label>
+                        <Input 
+                          id="toEmail" 
+                          type="email" 
+                          value={formState.to.email} 
+                          onChange={(e) => handleFormChange('to', 'email', e.target.value)}
+                        />
+                      </div>
+                      <div className="flex items-center justify-end gap-2 mt-4">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setEditingSections({...editingSections, to: false})}
+                          className="gap-1"
+                        >
+                          <X className="h-4 w-4" />
+                          Cancel
+                        </Button>
+                        <Button 
+                          variant="default" 
+                          size="sm" 
+                          onClick={() => toggleEditSection('to')}
+                          className="gap-1"
+                        >
+                          <Save className="h-4 w-4" />
+                          Save
+                        </Button>
                       </div>
                     </div>
+                  ) : (
+                    <dl className="divide-y divide-gray-100">
+                      <div className="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                        <dt className="text-sm font-medium text-gray-500">Name</dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{contract.to.name}</dd>
+                      </div>
+                      <div className="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                        <dt className="text-sm font-medium text-gray-500">Email</dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{contract.to.email}</dd>
+                      </div>
+                    </dl>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="place">
+                <AccordionTrigger className="px-6 py-4 hover:bg-gray-50 flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <MapPin className="h-4 w-4 text-blue-500" />
+                    Place of Service
                   </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
-        
-          <div className="lg:col-span-1">
-            <Card className="sticky top-24 glass-panel border-blue-100">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <FileText className="h-5 w-5 text-blue-500 mr-2" />
-                  Contract Preview
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ContractSummary contract={contract} />
-                
-                <div className="mt-6 flex flex-col gap-3">
-                  <Button 
-                    className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 transition-all"
-                    onClick={handleSendForReview}
-                  >
-                    Send For Review
-                  </Button>
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-base font-medium text-gray-700">Address Details</h3>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => toggleEditSection('place')}
+                      className="h-8 gap-1 text-blue-600 hover:bg-blue-50"
+                    >
+                      {editingSections.place ? (
+                        <>
+                          <Save className="h-4 w-4" />
+                          <span>Save</span>
+                        </>
+                      ) : (
+                        <>
+                          <Edit className="h-4 w-4" />
+                          <span>Edit</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
                   
-                  <Button
-                    variant="outline"
-                    className="w-full border-blue-200 text-blue-700 hover:bg-blue-50"
-                    onClick={handleDownloadPdf}
-                  >
-                    Download PDF
-                  </Button>
+                  {editingSections.place ? (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="placeOfService">Address</Label>
+                        <Textarea 
+                          id="placeOfService" 
+                          value={formState.details.placeOfService} 
+                          onChange={(e) => handleFormChange('details', 'placeOfService', e.target.value)}
+                          className="resize-none"
+                          rows={4}
+                        />
+                      </div>
+                      <div className="flex items-center justify-end gap-2 mt-4">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setEditingSections({...editingSections, place: false})}
+                          className="gap-1"
+                        >
+                          <X className="h-4 w-4" />
+                          Cancel
+                        </Button>
+                        <Button 
+                          variant="default" 
+                          size="sm" 
+                          onClick={() => toggleEditSection('place')}
+                          className="gap-1"
+                        >
+                          <Save className="h-4 w-4" />
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <dl className="divide-y divide-gray-100">
+                      <div className="px-4 py-3 sm:px-0">
+                        <dt className="text-sm font-medium text-gray-500 mb-2">Place of Service</dt>
+                        <dd className="text-sm text-gray-900">{contract.details.placeOfService}</dd>
+                      </div>
+                    </dl>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="time">
+                <AccordionTrigger className="px-6 py-4 hover:bg-gray-50 flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Clock className="h-4 w-4 text-blue-500" />
+                    Time Frame
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-base font-medium text-gray-700">Time Details</h3>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => toggleEditSection('time')}
+                      className="h-8 gap-1 text-blue-600 hover:bg-blue-50"
+                    >
+                      {editingSections.time ? (
+                        <>
+                          <Save className="h-4 w-4" />
+                          <span>Save</span>
+                        </>
+                      ) : (
+                        <>
+                          <Edit className="h-4 w-4" />
+                          <span>Edit</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
                   
-                  <Button
-                    variant="outline"
-                    className="w-full border-red-200 text-red-600 hover:bg-red-50 mt-2"
-                    onClick={handleDeleteContract}
-                  >
-                    Delete Contract
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </main>
-      
-      {isReviewPanelOpen && (
-        <ReviewPanel 
-          contract={contract}
-          onClose={() => setIsReviewPanelOpen(false)}
-          onComplete={handleReviewComplete}
-        />
-      )}
-      
-      {isReviewModalOpen && (
-        <ReviewModal
-          contract={contract}
-          open={isReviewModalOpen}
-          onOpenChange={setIsReviewModalOpen}
-          onComplete={handleReviewComplete}
-        />
-      )}
-    </div>
-  );
-};
-
-export default Index;
+                  {editingSections.time ? (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="startDate">Start Date & Time</Label>
+                        <Input 
+                          id="startDate" 
+                          value={formState.details.startDate} 
+                          onChange={(e) => handleFormChange('details', 'startDate', e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="endDate">End Date & Time</Label>
+                        <Input 
+                          id="endDate" 
+                          value={formState.details.endDate} 
+                          onChange={(e) => handleFormChange('details', 'endDate', e.target.value)}
+                        />
+                      </div>
+                      <div className="flex items-center justify-end gap-2 mt-4">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setEditingSections({...editingSections, time: false})}
+                          className="gap-1"
+                        >
+                          <X className="h-4 w-4" />
+                          Cancel
+                        </Button>
+                        <Button 
+                          variant="default" 
+                          size="sm" 
+                          onClick={() => toggleEditSection('time')}
+                          className="gap-1"
+                        >
+                          <Save className="h-4 w-4" />
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <dl className="divide-y divide-gray-100">
+                      <div className="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                        <dt className="text-sm font-medium text-gray-500">Start Date</dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{contract.details.startDate}</dd>
+                      </div>
+                      <div className="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                        <dt className="text-sm font-medium text-gray-500">End Date</dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{contract.details.endDate}</dd>
+                      </div>
+                    </dl>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="rate">
+                <AccordionTrigger className="px-6 py-4 hover:bg-gray-50 flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <DollarSign className="h-4 w-4 text-blue-500" />
+                    Rate
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-base font-medium text-gray-700">Payment Details</h3>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => toggleEditSection('rate')}
+                      className="h-8 gap-1 text-blue-600 hover:bg-blue-50"
+                    >
+                      {editingSections.rate ? (
+                        <>
+                          <Save className="h-4 w-4" />
+                          <span>Save</span>
+                        </>
+                      ) : (
+                        <>
+                          <Edit className="h-4 w-4" />
+                          <span>Edit</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  
+                  {editingSections.rate ? (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="rate">Rate</Label>
+                        <Input 
+                          id="rate" 
+                          value={formState.details.rate} 
+                          onChange={(e) => handleFormChange('details',

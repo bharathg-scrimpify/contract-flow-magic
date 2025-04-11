@@ -141,42 +141,4 @@
   .floating-label {
     @apply absolute top-0 left-2 -translate-y-1/2 bg-white px-1 text-xs text-gray-500 transition-all pointer-events-none;
   }
-
-  /* New trendy and funky UI components */
-  .card-gradient-blue {
-    @apply bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100;
-  }
-  
-  .card-gradient-purple {
-    @apply bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100;
-  }
-  
-  .card-gradient-green {
-    @apply bg-gradient-to-br from-green-50 to-teal-50 border border-green-100;
-  }
-  
-  .card-gradient-amber {
-    @apply bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-100;
-  }
-  
-  .header-gradient-blue {
-    @apply bg-gradient-to-r from-blue-500 to-indigo-500 text-white;
-  }
-  
-  .header-gradient-purple {
-    @apply bg-gradient-to-r from-purple-500 to-pink-500 text-white;
-  }
-  
-  .header-gradient-green {
-    @apply bg-gradient-to-r from-green-500 to-teal-500 text-white;
-  }
-  
-  .header-gradient-amber {
-    @apply bg-gradient-to-r from-amber-500 to-yellow-500 text-white;
-  }
-  
-  .content-box {
-    @apply p-3 rounded-lg bg-white/70 backdrop-blur-sm border border-blue-50;
-  }
 }
-
