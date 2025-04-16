@@ -22,7 +22,8 @@ import {
   FileText, 
   Paperclip, 
   History,
-  MessageSquare
+  MessageSquare,
+  Send
 } from 'lucide-react';
 import { Contract, ContractHistoryItem, PaymentInterval, PaymentTranche } from '@/types/contract';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -309,7 +310,7 @@ const Index = () => {
     if (useAlternativeDesign) {
       setIsReviewModalOpen(true);
     } else {
-      setIsReviewPanelOpen(true);
+      setIsReviewPanelOpen(false);
     }
   };
 
@@ -528,7 +529,14 @@ const Index = () => {
             </Badge>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <Button 
+              onClick={handleSendForReview}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Send className="w-4 h-4 mr-2" />
+              Send for Review
+            </Button>
             <Button
               onClick={() => setIsFromUser(!isFromUser)}
               variant="outline"
@@ -536,7 +544,6 @@ const Index = () => {
             >
               Switch to {isFromUser ? '"To" User View' : '"From" User View'}
             </Button>
-            
             <Button 
               onClick={() => setUseAlternativeDesign(prev => !prev)}
               variant="outline"
