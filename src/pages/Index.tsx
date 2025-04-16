@@ -5,6 +5,9 @@ import ContractSummary from '@/components/contract/ContractSummary';
 import ReviewPanel from '@/components/contract/ReviewPanel';
 import ReviewModal from '@/components/contract/ReviewModal';
 import PaymentPlanDisplay from '@/components/contract/PaymentPlanDisplay';
+import EditContractModal from '@/components/contract/EditContractModal';
+import SignatureTab from '@/components/contract/SignatureTab';
+import HistoryTab from '@/components/contract/HistoryTab';
 import { 
   Info, 
   Edit, 
@@ -208,6 +211,76 @@ const Index = () => {
     to: { ...contract.to },
     details: { ...contract.details },
   });
+
+  const [editModal, setEditModal] = useState<{
+    isOpen: boolean;
+    section: {
+      type: 'from' | 'to' | 'place' | 'duration' | 'rate';
+      title: string;
+      data: any;
+    };
+  }>({
+    isOpen: false,
+    section: {
+      type: 'from',
+      title: '',
+      data: null
+    }
+  });
+
+  const handleEdit = (type: 'from' | 'to' | 'place' | 'duration' | 'rate', title: string, data: any) => {
+    setEditModal({
+      isOpen: true,
+      section: {
+        type,
+        title,
+        data
+      }
+    });
+  };
+
+  const handleSaveEdit = (data: any) => {
+    switch (editModal.section.type) {
+      case 'from':
+        setContract(prev => ({ ...prev, from: data }));
+        break;
+      case 'to':
+        setContract(prev => ({ ...prev, to: data }));
+        break;
+      case 'place':
+        setContract(prev => ({ ...prev, details: { ...prev.details, placeOfService: data.placeOfService } }));
+        break;
+      case 'duration':
+        setContract(prev => ({ ...prev, details: { ...prev.details, startDate: data.startDate, endDate: data.endDate } }));
+        break;
+      case 'rate':
+        setContract(prev => ({ ...prev, details: { ...prev.details, rate: data.rate } }));
+        break;
+    }
+  };
+
+  const handleSign = (signature: string) => {
+    setContract(prev => ({
+      ...prev,
+      [isFromUser ? 'from' : 'to']: {
+        ...prev[isFromUser ? 'from' : 'to'],
+        signature
+      }
+    }));
+    
+    const historyItem: ContractHistoryItem = {
+      id: `history-${Date.now()}`,
+      date: new Date().toISOString(),
+      action: 'Contract Signed',
+      user: isFromUser ? contract.from.name : contract.to.name,
+      notes: `Signed by ${isFromUser ? 'From' : 'To'} party`
+    };
+    
+    setContract(prev => ({
+      ...prev,
+      history: [...(prev.history || []), historyItem]
+    }));
+  };
 
   const handleSendForReview = () => {
     if (useAlternativeDesign) {
@@ -468,22 +541,30 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="mb-4 grid grid-cols-4 gap-2 bg-gray-100 p-1">
-                <TabsTrigger value="overview" className="data-[state=active]:bg-white">
+              <TabsList className="mb-4 grid grid-cols-5 gap-2 bg-gray-100 p-1">
+                <TabsTrigger value="overview">
                   <FileText className="w-4 h-4 mr-2" />
                   Overview
                 </TabsTrigger>
-                <TabsTrigger value="payments" className="data-[state=active]:bg-white">
+                <TabsTrigger value="payments">
                   <DollarSign className="w-4 h-4 mr-2" />
                   Payments
                 </TabsTrigger>
-                <TabsTrigger value="chat" className="data-[state=active]:bg-white">
+                <TabsTrigger value="signature">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Signature
+                </TabsTrigger>
+                <TabsTrigger value="files">
+                  <Paperclip className="w-4 h-4 mr-2" />
+                  Files
+                </TabsTrigger>
+                <TabsTrigger value="chat">
                   <MessageSquare className="w-4 h-4 mr-2" />
                   Chat
                 </TabsTrigger>
-                <TabsTrigger value="attachments" className="data-[state=active]:bg-white">
-                  <Paperclip className="w-4 h-4 mr-2" />
-                  Files
+                <TabsTrigger value="history">
+                  <History className="w-4 h-4 mr-2" />
+                  History
                 </TabsTrigger>
               </TabsList>
               
@@ -540,6 +621,30 @@ const Index = () => {
                 />
               </TabsContent>
               
+              <TabsContent value="signature" className="space-y-6 animate-fade-in">
+                <SignatureTab
+                  contract={contract}
+                  isFromUser={isFromUser}
+                  onSign={handleSign}
+                />
+              </TabsContent>
+              
+              <TabsContent value="files" className="space-y-6 animate-fade-in">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Contract Files</CardTitle>
+                    <CardDescription>View and manage contract documents</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8 border border-dashed rounded-lg">
+                      <Paperclip className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-500">Drag and drop files here or click to browse</p>
+                      <Button variant="outline" className="mt-4">Add Files</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
               <TabsContent value="chat" className="space-y-6 animate-fade-in">
                 <Card>
                   <CardHeader>
@@ -554,20 +659,8 @@ const Index = () => {
                 </Card>
               </TabsContent>
               
-              <TabsContent value="attachments" className="space-y-6 animate-fade-in">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Contract Files</CardTitle>
-                    <CardDescription>View and manage contract documents</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center py-8 border border-dashed rounded-lg">
-                      <Paperclip className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-500">Drag and drop files here or click to browse</p>
-                      <Button variant="outline" className="mt-4">Add Files</Button>
-                    </div>
-                  </CardContent>
-                </Card>
+              <TabsContent value="history" className="space-y-6 animate-fade-in">
+                <HistoryTab history={contract.history} />
               </TabsContent>
             </Tabs>
           </div>
@@ -605,6 +698,13 @@ const Index = () => {
           toName: contract.to.name,
           rate: contract.details.rate,
         }}
+      />
+      
+      <EditContractModal
+        isOpen={editModal.isOpen}
+        onClose={() => setEditModal(prev => ({ ...prev, isOpen: false }))}
+        onSave={handleSaveEdit}
+        section={editModal.section}
       />
     </div>
   );
