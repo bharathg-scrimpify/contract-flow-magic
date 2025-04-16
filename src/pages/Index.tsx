@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { Contract, PaymentInterval, PaymentTranche } from '@/types/contract';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,7 @@ const Index = () => {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [useAlternativeDesign, setUseAlternativeDesign] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [isFromUser, setIsFromUser] = useState(true);
   const [editingSections, setEditingSections] = useState({
     from: false,
     to: false,
@@ -392,8 +393,6 @@ const Index = () => {
     }));
   };
 
-  const isFromUser = true;
-
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
@@ -488,7 +487,7 @@ const Index = () => {
                 </TabsTrigger>
               </TabsList>
               
-              <TabsContent value="overview" className="space-y-6">
+              <TabsContent value="overview" className="space-y-6 animate-fade-in">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-lg font-medium">Contract Overview</CardTitle>
@@ -529,7 +528,7 @@ const Index = () => {
                 </Card>
               </TabsContent>
               
-              <TabsContent value="payments" className="space-y-6">
+              <TabsContent value="payments" className="space-y-6 animate-fade-in">
                 <PaymentPlanDisplay 
                   paymentType={contract.payment?.selectedPaymentType}
                   paymentFrequency={contract.payment?.selectedPaymentFrequency}
@@ -541,7 +540,7 @@ const Index = () => {
                 />
               </TabsContent>
               
-              <TabsContent value="chat" className="space-y-6">
+              <TabsContent value="chat" className="space-y-6 animate-fade-in">
                 <Card>
                   <CardHeader>
                     <CardTitle>Contract Discussion</CardTitle>
@@ -555,7 +554,7 @@ const Index = () => {
                 </Card>
               </TabsContent>
               
-              <TabsContent value="attachments" className="space-y-6">
+              <TabsContent value="attachments" className="space-y-6 animate-fade-in">
                 <Card>
                   <CardHeader>
                     <CardTitle>Contract Files</CardTitle>
@@ -576,15 +575,7 @@ const Index = () => {
           <div className="lg:col-span-1">
             <div className="sticky top-24">
               <ContractSummary 
-                contract={{
-                  subject: contract.subject,
-                  type: contract.type,
-                  facilitatedBy: contract.facilitatedBy,
-                  from: contract.from,
-                  to: contract.to,
-                  details: contract.details,
-                  progress: contract.progress,
-                }}
+                contract={contract}
                 onSendForReview={handleSendForReview}
                 onDelete={handleDeleteContract}
                 onDownloadPdf={handleDownloadPdf}
