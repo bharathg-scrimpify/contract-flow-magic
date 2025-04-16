@@ -23,7 +23,10 @@ import {
   Paperclip, 
   History,
   MessageSquare,
-  Send
+  Send,
+  FileSignature,
+  PlayCircle,
+  CheckCheck
 } from 'lucide-react';
 import { Contract, ContractHistoryItem, PaymentInterval, PaymentTranche } from '@/types/contract';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -35,6 +38,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Index = () => {
   const { toast } = useToast();
@@ -43,6 +47,8 @@ const Index = () => {
   const [useAlternativeDesign, setUseAlternativeDesign] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [isFromUser, setIsFromUser] = useState(true);
+  const [selectedPaymentType, setSelectedPaymentType] = useState<'one-time' | 'partial' | undefined>(undefined);
+  const [selectedPaymentFrequency, setSelectedPaymentFrequency] = useState<'Monthly' | 'Weekly' | 'Daily' | undefined>(undefined);
   const [editingSections, setEditingSections] = useState({
     from: false,
     to: false,
@@ -53,12 +59,43 @@ const Index = () => {
   });
 
   const [contractSteps, setContractSteps] = useState<Step[]>([
-    { id: 1, name: 'Draft', status: 'current' },
-    { id: 2, name: 'Pending Review', status: 'upcoming' },
-    { id: 3, name: 'Active', status: 'upcoming' },
-    { id: 4, name: 'In Progress', status: 'upcoming' },
-    { id: 5, name: 'Pending Completion', status: 'upcoming' },
-    { id: 6, name: 'Completed', status: 'upcoming' },
+    { 
+      id: 1, 
+      name: 'Draft', 
+      status: 'current' as const,
+      description: 'Review contract details and sign',
+      actionIcon: <div className="flex items-center text-xs text-blue-600"><FileSignature className="w-3 h-3 mr-1" /> Sign the contract</div>
+    },
+    { 
+      id: 2, 
+      name: 'Pending Review', 
+      status: 'upcoming' as const,
+      description: 'Waiting for other party to review'
+    },
+    { 
+      id: 3, 
+      name: 'Active', 
+      status: 'upcoming' as const,
+      description: 'Contract is active, ready to start'
+    },
+    { 
+      id: 4, 
+      name: 'In Progress', 
+      status: 'upcoming' as const,
+      description: 'Contract work in progress'
+    },
+    { 
+      id: 5, 
+      name: 'Pending Completion', 
+      status: 'upcoming' as const,
+      description: 'Waiting for completion approval'
+    },
+    { 
+      id: 6, 
+      name: 'Completed', 
+      status: 'upcoming' as const,
+      description: 'Contract successfully completed'
+    },
   ]);
   
   const mockPaymentPlans = {
@@ -300,17 +337,47 @@ const Index = () => {
       history: [...(prev.history || []), historyItem]
     }));
 
+    if (!isFromUser && contract.status === 'pending_review') {
+      setContract(prev => ({
+        ...prev,
+        status: 'active',
+        progress: 60
+      }));
+    }
+
     toast({
       title: "Contract Signed",
       description: "Your signature has been added to the contract.",
     });
+    
+    updateStepperStatus();
   };
 
   const handleSendForReview = () => {
+    if (isFromUser && !contract.from.signature) {
+      toast({
+        title: "Signature Required",
+        description: "Please sign the contract before sending for review.",
+        variant: "destructive"
+      });
+      setActiveTab('signature');
+      return;
+    }
+    
+    if (!contract.payment?.selectedPaymentType) {
+      toast({
+        title: "Payment Method Required",
+        description: "Please select a payment method before sending for review.",
+        variant: "destructive"
+      });
+      setActiveTab('payments');
+      return;
+    }
+
     if (useAlternativeDesign) {
       setIsReviewModalOpen(true);
     } else {
-      setIsReviewPanelOpen(false);
+      setIsReviewPanelOpen(true);
     }
   };
 
@@ -339,6 +406,71 @@ const Index = () => {
     toast({
       title: "Contract Sent for Review",
       description: `Payment of $${data.totalAmount.toFixed(2)} has been processed successfully.`,
+    });
+  };
+
+  const handleStartContract = () => {
+    if (contract.status !== 'active') {
+      return;
+    }
+    
+    setContract(prev => ({
+      ...prev,
+      status: 'in_progress',
+      progress: 75
+    }));
+    
+    const historyItem: ContractHistoryItem = {
+      id: `history-${Date.now()}`,
+      date: new Date().toISOString(),
+      action: 'Contract Started',
+      user: isFromUser ? contract.from.name : contract.to.name,
+    };
+    
+    setContract(prev => ({
+      ...prev,
+      history: [...(prev.history || []), historyItem]
+    }));
+    
+    toast({
+      title: "Contract Started",
+      description: "The contract has been marked as In Progress.",
+    });
+    
+    updateStepperStatus();
+  };
+
+  const handleSavePaymentMethod = () => {
+    if (!selectedPaymentType) {
+      toast({
+        title: "Selection Required",
+        description: "Please select a payment type.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (selectedPaymentType === 'partial' && !selectedPaymentFrequency) {
+      toast({
+        title: "Selection Required",
+        description: "Please select a payment frequency.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const updatedPayment = { ...contract.payment! };
+    updatedPayment.selectedPaymentType = selectedPaymentType;
+    updatedPayment.selectedPaymentFrequency = selectedPaymentType === 'partial' ? selectedPaymentFrequency : undefined;
+    
+    setContract(prev => ({
+      ...prev,
+      payment: updatedPayment
+    }));
+    
+    toast({
+      title: "Payment Method Saved",
+      description: "Your payment method has been saved successfully.",
     });
   };
 
@@ -490,6 +622,87 @@ const Index = () => {
     }));
   };
 
+  const updateStepperStatus = () => {
+    const newSteps = [...contractSteps];
+    
+    newSteps.forEach(step => {
+      step.status = 'upcoming';
+    });
+    
+    switch(contract.status) {
+      case 'draft':
+        newSteps[0].status = 'current';
+        newSteps[0].description = 'Review contract details and sign';
+        newSteps[0].actionIcon = contract.from.signature ? 
+          <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
+            <CheckCheck className="w-3 h-3 mr-1" /> Signed
+          </Badge> :
+          <div className="flex items-center text-xs text-blue-600">
+            <FileSignature className="w-3 h-3 mr-1" /> Sign the contract
+          </div>;
+        break;
+      case 'pending_review':
+        newSteps[0].status = 'completed';
+        newSteps[1].status = 'current';
+        newSteps[1].description = isFromUser ? 
+          'Waiting for other party to review' : 
+          'Review contract details and sign';
+        newSteps[1].actionIcon = !isFromUser ? 
+          <div className="flex items-center text-xs text-blue-600">
+            <FileSignature className="w-3 h-3 mr-1" /> Sign the contract
+          </div> : undefined;
+        break;
+      case 'active':
+        newSteps[0].status = 'completed';
+        newSteps[1].status = 'completed';
+        newSteps[2].status = 'current';
+        newSteps[2].description = 'Contract is signed by both parties';
+        newSteps[2].actionIcon = 
+          <div className="flex items-center text-xs text-blue-600">
+            <PlayCircle className="w-3 h-3 mr-1" /> Start Contract
+          </div>;
+        break;
+      case 'in_progress':
+        newSteps[0].status = 'completed';
+        newSteps[1].status = 'completed';
+        newSteps[2].status = 'completed';
+        newSteps[3].status = 'current';
+        break;
+      case 'pending_completion':
+        newSteps[0].status = 'completed';
+        newSteps[1].status = 'completed';
+        newSteps[2].status = 'completed';
+        newSteps[3].status = 'completed';
+        newSteps[4].status = 'current';
+        break;
+      case 'completed':
+        newSteps[0].status = 'completed';
+        newSteps[1].status = 'completed';
+        newSteps[2].status = 'completed';
+        newSteps[3].status = 'completed';
+        newSteps[4].status = 'completed';
+        newSteps[5].status = 'current';
+        break;
+    }
+    
+    setContractSteps(newSteps);
+  };
+
+  const isSendForReviewEnabled = () => {
+    if (isFromUser) {
+      return !!contract.from.signature && !!contract.payment?.selectedPaymentType;
+    }
+    return false;
+  };
+
+  const showStartContractButton = isFromUser && contract.status === 'active';
+
+  const isContractEditable = isFromUser && contract.status === 'draft';
+
+  useEffect(() => {
+    updateStepperStatus();
+  }, [contract.status]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
@@ -530,13 +743,25 @@ const Index = () => {
           </div>
           
           <div className="flex items-center gap-3">
+            {contract.status === 'active' && isFromUser && (
+              <Button 
+                onClick={handleStartContract}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <PlayCircle className="w-4 h-4 mr-2" />
+                Start Contract
+              </Button>
+            )}
+            
             <Button 
               onClick={handleSendForReview}
               className="bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={!(isFromUser && contract.status === 'draft')}
             >
               <Send className="w-4 h-4 mr-2" />
               Send for Review
             </Button>
+            
             <Button
               onClick={() => setIsFromUser(!isFromUser)}
               variant="outline"
@@ -544,6 +769,7 @@ const Index = () => {
             >
               Switch to {isFromUser ? '"To" User View' : '"From" User View'}
             </Button>
+            
             <Button 
               onClick={() => setUseAlternativeDesign(prev => !prev)}
               variant="outline"
@@ -562,15 +788,41 @@ const Index = () => {
           </div>
 
           <div className="col-span-9">
-            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start mb-8 animate-fade-in">
-              <Info className="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
-              <div>
-                <p className="text-blue-800 font-medium">Confirm the details, add your signature and send for review.</p>
-                <p className="text-sm text-blue-600">
-                  Please review all contract details carefully before sending it for review.
-                </p>
+            {contract.status === 'draft' && isFromUser && (
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start mb-8 animate-fade-in">
+                <Info className="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
+                <div>
+                  <p className="text-blue-800 font-medium">Confirm the details, add your signature and send for review.</p>
+                  <p className="text-sm text-blue-600">
+                    Please review all contract details carefully before sending it for review.
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
+            
+            {contract.status === 'pending_review' && !isFromUser && (
+              <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 flex items-start mb-8 animate-fade-in">
+                <Info className="w-5 h-5 text-amber-500 mt-0.5 mr-3 flex-shrink-0" />
+                <div>
+                  <p className="text-amber-800 font-medium">Contract is pending your review.</p>
+                  <p className="text-sm text-amber-600">
+                    Please review the contract details and add your signature to activate the contract.
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {contract.status === 'active' && (
+              <div className="bg-green-50 border border-green-100 rounded-lg p-4 flex items-start mb-8 animate-fade-in">
+                <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+                <div>
+                  <p className="text-green-800 font-medium">Contract is active and ready to start.</p>
+                  <p className="text-sm text-green-600">
+                    Both parties have signed the contract. {isFromUser ? "You can now start the contract." : "Waiting for the contract to be started."}
+                  </p>
+                </div>
+              </div>
+            )}
 
             <div className="space-y-6">
               <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
@@ -610,13 +862,81 @@ const Index = () => {
                     <CardContent className="pt-4">
                       <ContractSummary 
                         contract={contract}
-                        onEdit={handleEdit}
+                        onEdit={isContractEditable ? handleEdit : undefined}
                       />
                     </CardContent>
                   </Card>
                 </TabsContent>
                 
                 <TabsContent value="payments" className="space-y-6 animate-fade-in">
+                  {(contract.status === 'draft' && isFromUser) && (
+                    <Card className="mb-6">
+                      <CardHeader>
+                        <CardTitle>Payment Method</CardTitle>
+                        <CardDescription>Select how you would like to pay for this contract</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        <div className="space-y-4">
+                          <Label>Payment Type</Label>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div 
+                              className={`p-4 border rounded-lg cursor-pointer ${selectedPaymentType === 'one-time' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                              onClick={() => setSelectedPaymentType('one-time')}
+                            >
+                              <div className="flex items-center">
+                                <div className={`w-4 h-4 rounded-full border-2 ${selectedPaymentType === 'one-time' ? 'border-blue-500' : 'border-gray-300'} flex items-center justify-center`}>
+                                  {selectedPaymentType === 'one-time' && (
+                                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                  )}
+                                </div>
+                                <span className="ml-2 font-medium">One-time Payment</span>
+                              </div>
+                              <p className="text-sm text-gray-500 mt-2">Pay the full amount at once</p>
+                            </div>
+                            
+                            <div 
+                              className={`p-4 border rounded-lg cursor-pointer ${selectedPaymentType === 'partial' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                              onClick={() => setSelectedPaymentType('partial')}
+                            >
+                              <div className="flex items-center">
+                                <div className={`w-4 h-4 rounded-full border-2 ${selectedPaymentType === 'partial' ? 'border-blue-500' : 'border-gray-300'} flex items-center justify-center`}>
+                                  {selectedPaymentType === 'partial' && (
+                                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                  )}
+                                </div>
+                                <span className="ml-2 font-medium">Partial Payments</span>
+                              </div>
+                              <p className="text-sm text-gray-500 mt-2">Split your payments over time</p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {selectedPaymentType === 'partial' && (
+                          <div className="space-y-4 animate-in fade-in-50 slide-in-from-top-5 duration-200">
+                            <Label>Payment Frequency</Label>
+                            <Select
+                              value={selectedPaymentFrequency}
+                              onValueChange={(value) => setSelectedPaymentFrequency(value as any)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select payment frequency" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Monthly">Monthly</SelectItem>
+                                <SelectItem value="Weekly">Weekly</SelectItem>
+                                <SelectItem value="Daily">Daily</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+                        
+                        <Button onClick={handleSavePaymentMethod} className="w-full">
+                          Save Payment Method
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
                   <PaymentPlanDisplay 
                     paymentType={contract.payment?.selectedPaymentType}
                     paymentFrequency={contract.payment?.selectedPaymentFrequency}
@@ -633,6 +953,7 @@ const Index = () => {
                     contract={contract}
                     isFromUser={isFromUser}
                     onSign={handleSign}
+                    isDisabled={!isFromUser && contract.status !== 'pending_review'}
                   />
                 </TabsContent>
                 

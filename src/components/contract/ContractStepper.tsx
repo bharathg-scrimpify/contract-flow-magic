@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Check } from 'lucide-react';
+import { Check, AlertCircle, Pencil, Send, FileSignature, PlayCircle, Clock } from 'lucide-react';
 
 export type StepStatus = 'completed' | 'current' | 'upcoming';
 
@@ -9,6 +9,8 @@ export interface Step {
   id: number;
   name: string;
   status: StepStatus;
+  description?: string;
+  actionIcon?: React.ReactNode;
 }
 
 interface ContractStepperProps {
@@ -43,14 +45,29 @@ const ContractStepper = ({ steps, className }: ContractStepperProps) => {
                   )} />
                 )}
               </div>
-              <span className={cn(
-                "ml-4 text-sm font-medium transition-all duration-300",
-                step.status === 'completed' ? "text-brand-blue" : 
-                step.status === 'current' ? "text-brand-blue font-semibold" : 
-                "text-gray-500"
-              )}>
-                {step.name}
-              </span>
+              <div className="ml-4">
+                <span className={cn(
+                  "text-sm font-medium transition-all duration-300 block",
+                  step.status === 'completed' ? "text-brand-blue" : 
+                  step.status === 'current' ? "text-brand-blue font-semibold" : 
+                  "text-gray-500"
+                )}>
+                  {step.name}
+                </span>
+                {step.description && (
+                  <p className={cn(
+                    "text-xs mt-1",
+                    step.status === 'current' ? "text-gray-700" : "text-gray-500"
+                  )}>
+                    {step.description}
+                  </p>
+                )}
+                {step.status === 'current' && step.actionIcon && (
+                  <div className="mt-2">
+                    {step.actionIcon}
+                  </div>
+                )}
+              </div>
             </div>
           </li>
         ))}

@@ -4,6 +4,7 @@ export interface ContractParty {
   email: string;
   organization?: string;
   address?: string;
+  signature?: string;
 }
 
 export interface ContractDetails {
