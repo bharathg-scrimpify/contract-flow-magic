@@ -18,7 +18,8 @@ import {
   Clock, 
   FileText, 
   Paperclip, 
-  History
+  History,
+  MessageSquare
 } from 'lucide-react';
 import { Contract, PaymentInterval, PaymentTranche } from '@/types/contract';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -465,18 +466,6 @@ const Index = () => {
           </div>
         </div>
 
-        {contract.payment?.selectedPaymentType && (
-          <PaymentPlanDisplay 
-            paymentType={contract.payment.selectedPaymentType}
-            paymentFrequency={contract.payment.selectedPaymentFrequency}
-            interval={selectedPaymentInterval}
-            isFromUser={isFromUser}
-            onRequestPayment={handleRequestPayment}
-            onApprovePayment={handleApprovePayment}
-            onCancelPayment={handleCancelPayment}
-          />
-        )}
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -485,415 +474,98 @@ const Index = () => {
                   <FileText className="w-4 h-4 mr-2" />
                   Overview
                 </TabsTrigger>
-                <TabsTrigger value="parties" className="data-[state=active]:bg-white">
-                  <User className="w-4 h-4 mr-2" />
-                  Parties
+                <TabsTrigger value="payments" className="data-[state=active]:bg-white">
+                  <DollarSign className="w-4 h-4 mr-2" />
+                  Payments
                 </TabsTrigger>
-                <TabsTrigger value="details" className="data-[state=active]:bg-white">
-                  <MapPin className="w-4 h-4 mr-2" />
-                  Details
+                <TabsTrigger value="chat" className="data-[state=active]:bg-white">
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Chat
                 </TabsTrigger>
-                <TabsTrigger value="other" className="data-[state=active]:bg-white">
+                <TabsTrigger value="attachments" className="data-[state=active]:bg-white">
                   <Paperclip className="w-4 h-4 mr-2" />
-                  Other
+                  Files
                 </TabsTrigger>
               </TabsList>
               
               <TabsContent value="overview" className="space-y-6">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium">Contract Summary</CardTitle>
+                    <CardTitle className="text-lg font-medium">Contract Overview</CardTitle>
                     <CheckCircle2 className="h-5 w-5 text-green-500" />
                   </CardHeader>
                   <CardContent className="pt-4">
-                    <dl className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <dt className="text-gray-500">Contract Type</dt>
-                        <dd className="font-medium">{contract.type}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-gray-500">Facilitated By</dt>
-                        <dd className="font-medium">{contract.facilitatedBy}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-gray-500">Created</dt>
-                        <dd className="font-medium">
-                          {new Date(contract.createdAt).toLocaleDateString()}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-gray-500">Status</dt>
-                        <dd>
-                          <Badge variant="outline" className="font-normal">
-                            {contract.status.replace('_', ' ').toUpperCase()}
-                          </Badge>
-                        </dd>
-                      </div>
-                    </dl>
-                  </CardContent>
-                </Card>
-                
-                <div className="grid gap-6 md:grid-cols-2">
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-lg font-medium">Contract Progress</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Progress</span>
-                          <span className="font-medium">{contract.progress}%</span>
-                        </div>
-                        <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
-                          <div 
-                            className="h-full rounded-full bg-blue-500" 
-                            style={{ width: `${contract.progress}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-lg font-medium">Contract Value</CardTitle>
-                      <DollarSign className="h-5 w-5 text-green-500" />
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                      <div className="text-2xl font-bold">{contract.details.rate}</div>
-                      <p className="text-sm text-gray-500 mt-1">
-                        From {contract.details.startDate} to {contract.details.endDate}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="parties" className="space-y-6">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium">Contract From</CardTitle>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => toggleEditSection('from')}
-                      className="h-8 gap-1"
-                    >
-                      {editingSections.from ? (
-                        <>
-                          <Save className="h-4 w-4" />
-                          <span>Save</span>
-                        </>
-                      ) : (
-                        <>
-                          <Edit className="h-4 w-4" />
-                          <span>Edit</span>
-                        </>
-                      )}
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    {editingSections.from ? (
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="fromName">Name</Label>
-                          <Input 
-                            id="fromName" 
-                            value={formState.from.name} 
-                            onChange={(e) => handleFormChange('from', 'name', e.target.value)}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="fromEmail">Email</Label>
-                          <Input 
-                            id="fromEmail" 
-                            type="email" 
-                            value={formState.from.email} 
-                            onChange={(e) => handleFormChange('from', 'email', e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <dl className="space-y-2">
-                        <div>
-                          <dt className="text-gray-500 text-sm">Name</dt>
-                          <dd className="font-medium">{contract.from.name}</dd>
-                        </div>
-                        <div>
-                          <dt className="text-gray-500 text-sm">Email</dt>
-                          <dd>{contract.from.email}</dd>
-                        </div>
-                      </dl>
-                    )}
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium">Contract To</CardTitle>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => toggleEditSection('to')}
-                      className="h-8 gap-1"
-                    >
-                      {editingSections.to ? (
-                        <>
-                          <Save className="h-4 w-4" />
-                          <span>Save</span>
-                        </>
-                      ) : (
-                        <>
-                          <Edit className="h-4 w-4" />
-                          <span>Edit</span>
-                        </>
-                      )}
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    {editingSections.to ? (
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="toName">Name</Label>
-                          <Input 
-                            id="toName" 
-                            value={formState.to.name} 
-                            onChange={(e) => handleFormChange('to', 'name', e.target.value)}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="toEmail">Email</Label>
-                          <Input 
-                            id="toEmail" 
-                            type="email" 
-                            value={formState.to.email} 
-                            onChange={(e) => handleFormChange('to', 'email', e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <dl className="space-y-2">
-                        <div>
-                          <dt className="text-gray-500 text-sm">Name</dt>
-                          <dd className="font-medium">{contract.to.name}</dd>
-                        </div>
-                        <div>
-                          <dt className="text-gray-500 text-sm">Email</dt>
-                          <dd>{contract.to.email}</dd>
-                        </div>
-                      </dl>
-                    )}
+                    <ContractSummary 
+                      contract={contract}
+                      onEdit={(field, value) => {
+                        const updatedContract = { ...contract };
+                        switch (field) {
+                          case 'fromName':
+                            updatedContract.from.name = value;
+                            break;
+                          case 'toName':
+                            updatedContract.to.name = value;
+                            break;
+                          case 'placeOfService':
+                            updatedContract.details.placeOfService = value;
+                            break;
+                          case 'rate':
+                            updatedContract.details.rate = value;
+                            break;
+                          case 'duration':
+                            const [start, end] = value.split(' - ');
+                            updatedContract.details.startDate = start;
+                            updatedContract.details.endDate = end;
+                            break;
+                        }
+                        setContract(updatedContract);
+                        toast({
+                          title: "Updated Successfully",
+                          description: `${field} has been updated.`,
+                        });
+                      }}
+                    />
                   </CardContent>
                 </Card>
               </TabsContent>
               
-              <TabsContent value="details" className="space-y-6">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium">Place of Service</CardTitle>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => toggleEditSection('place')}
-                      className="h-8 gap-1"
-                    >
-                      {editingSections.place ? (
-                        <>
-                          <Save className="h-4 w-4" />
-                          <span>Save</span>
-                        </>
-                      ) : (
-                        <>
-                          <Edit className="h-4 w-4" />
-                          <span>Edit</span>
-                        </>
-                      )}
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    {editingSections.place ? (
-                      <div className="space-y-2">
-                        <Label htmlFor="place">Address</Label>
-                        <Textarea 
-                          id="place" 
-                          value={formState.details.placeOfService} 
-                          onChange={(e) => handleFormChange('details', 'placeOfService', e.target.value)}
-                          rows={3}
-                        />
-                      </div>
-                    ) : (
-                      <p className="text-gray-800">{contract.details.placeOfService}</p>
-                    )}
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium">Time</CardTitle>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => toggleEditSection('time')}
-                      className="h-8 gap-1"
-                    >
-                      {editingSections.time ? (
-                        <>
-                          <Save className="h-4 w-4" />
-                          <span>Save</span>
-                        </>
-                      ) : (
-                        <>
-                          <Edit className="h-4 w-4" />
-                          <span>Edit</span>
-                        </>
-                      )}
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    {editingSections.time ? (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="startDate">Start Date</Label>
-                          <Input 
-                            id="startDate" 
-                            value={formState.details.startDate} 
-                            onChange={(e) => handleFormChange('details', 'startDate', e.target.value)}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="endDate">End Date</Label>
-                          <Input 
-                            id="endDate" 
-                            value={formState.details.endDate} 
-                            onChange={(e) => handleFormChange('details', 'endDate', e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-gray-500">Start Date</p>
-                          <p className="text-gray-800">{contract.details.startDate}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">End Date</p>
-                          <p className="text-gray-800">{contract.details.endDate}</p>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium">Rate</CardTitle>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => toggleEditSection('rate')}
-                      className="h-8 gap-1"
-                    >
-                      {editingSections.rate ? (
-                        <>
-                          <Save className="h-4 w-4" />
-                          <span>Save</span>
-                        </>
-                      ) : (
-                        <>
-                          <Edit className="h-4 w-4" />
-                          <span>Edit</span>
-                        </>
-                      )}
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    {editingSections.rate ? (
-                      <div className="space-y-2">
-                        <Label htmlFor="rate">Hourly Rate</Label>
-                        <Input 
-                          id="rate" 
-                          value={formState.details.rate} 
-                          onChange={(e) => handleFormChange('details', 'rate', e.target.value)}
-                        />
-                      </div>
-                    ) : (
-                      <p className="text-gray-800">{contract.details.rate}</p>
-                    )}
-                  </CardContent>
-                </Card>
+              <TabsContent value="payments" className="space-y-6">
+                <PaymentPlanDisplay 
+                  paymentType={contract.payment?.selectedPaymentType}
+                  paymentFrequency={contract.payment?.selectedPaymentFrequency}
+                  interval={selectedPaymentInterval}
+                  isFromUser={isFromUser}
+                  onRequestPayment={handleRequestPayment}
+                  onApprovePayment={handleApprovePayment}
+                  onCancelPayment={handleCancelPayment}
+                />
               </TabsContent>
               
-              <TabsContent value="other" className="space-y-6">
+              <TabsContent value="chat" className="space-y-6">
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium">Additional Details</CardTitle>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => toggleEditSection('additionalDetails')}
-                      className="h-8 gap-1"
-                    >
-                      {editingSections.additionalDetails ? (
-                        <>
-                          <Save className="h-4 w-4" />
-                          <span>Save</span>
-                        </>
-                      ) : (
-                        <>
-                          <Edit className="h-4 w-4" />
-                          <span>Edit</span>
-                        </>
-                      )}
-                    </Button>
+                  <CardHeader>
+                    <CardTitle>Contract Discussion</CardTitle>
+                    <CardDescription>Chat with other parties involved in this contract</CardDescription>
                   </CardHeader>
-                  <CardContent className="pt-4">
-                    {editingSections.additionalDetails ? (
-                      <div className="flex items-center space-x-2">
-                        <Switch 
-                          id="mealsIncluded" 
-                          checked={formState.details.mealsIncluded}
-                          onCheckedChange={(checked) => handleFormChange('details', 'mealsIncluded', checked)}
-                        />
-                        <Label htmlFor="mealsIncluded">Meals Included</Label>
-                      </div>
-                    ) : (
-                      <div className="flex items-center">
-                        <p className="text-gray-800">Meals Included: </p>
-                        <span className="ml-2 text-gray-800">
-                          {contract.details.mealsIncluded ? 'Yes' : 'No'}
-                        </span>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium">Attachments</CardTitle>
-                    <Button variant="ghost" size="sm" className="h-8 gap-1">
-                      <Paperclip className="h-4 w-4" />
-                      <span>Add</span>
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="pt-4 text-center">
-                    <div className="py-8 border border-dashed rounded-lg">
-                      <Paperclip className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500">No attachments added</p>
-                      <Button variant="outline" size="sm" className="mt-2">
-                        Upload File
-                      </Button>
+                  <CardContent>
+                    <div className="h-[400px] flex items-center justify-center border-2 border-dashed rounded-lg">
+                      <p className="text-gray-500">Chat feature coming soon</p>
                     </div>
                   </CardContent>
                 </Card>
-                
+              </TabsContent>
+              
+              <TabsContent value="attachments" className="space-y-6">
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium">History</CardTitle>
+                  <CardHeader>
+                    <CardTitle>Contract Files</CardTitle>
+                    <CardDescription>View and manage contract documents</CardDescription>
                   </CardHeader>
-                  <CardContent className="pt-4">
-                    <div className="text-center py-6">
-                      <History className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500">No history available</p>
+                  <CardContent>
+                    <div className="text-center py-8 border border-dashed rounded-lg">
+                      <Paperclip className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-500">Drag and drop files here or click to browse</p>
+                      <Button variant="outline" className="mt-4">Add Files</Button>
                     </div>
                   </CardContent>
                 </Card>
