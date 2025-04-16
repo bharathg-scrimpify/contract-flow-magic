@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { ContractHistoryItem } from '@/types/contract';
-import { Clock } from 'lucide-react';
+import { Clock, User, FileText } from 'lucide-react';
 
 interface HistoryTabProps {
   history?: ContractHistoryItem[];
@@ -23,7 +23,13 @@ const HistoryTab = ({ history = [] }: HistoryTabProps) => {
                 <div key={item.id} className="flex gap-4">
                   <div className="flex-shrink-0 w-10">
                     <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
-                      <Clock className="h-4 w-4 text-blue-600" />
+                      {item.action.includes('Sign') ? (
+                        <FileText className="h-4 w-4 text-blue-600" />
+                      ) : item.action.includes('Edit') ? (
+                        <User className="h-4 w-4 text-blue-600" />
+                      ) : (
+                        <Clock className="h-4 w-4 text-blue-600" />
+                      )}
                     </div>
                     {index !== history.length - 1 && (
                       <div className="w-px h-full bg-gray-200 mx-auto mt-2" />

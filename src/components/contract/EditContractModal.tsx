@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,14 @@ interface EditContractModalProps {
 }
 
 const EditContractModal = ({ isOpen, onClose, onSave, section }: EditContractModalProps) => {
-  const [formData, setFormData] = React.useState(section.data);
+  const [formData, setFormData] = React.useState<any>({});
+
+  // Update form data when section data changes or modal opens
+  useEffect(() => {
+    if (isOpen && section && section.data) {
+      setFormData(section.data);
+    }
+  }, [isOpen, section]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +34,8 @@ const EditContractModal = ({ isOpen, onClose, onSave, section }: EditContractMod
   };
 
   const renderFields = () => {
+    if (!section || !formData) return null;
+
     switch (section.type) {
       case 'from':
       case 'to':
@@ -36,7 +45,7 @@ const EditContractModal = ({ isOpen, onClose, onSave, section }: EditContractMod
               <Label htmlFor="name">Name</Label>
               <Input
                 id="name"
-                value={formData.name}
+                value={formData.name || ''}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
@@ -45,7 +54,7 @@ const EditContractModal = ({ isOpen, onClose, onSave, section }: EditContractMod
               <Input
                 id="email"
                 type="email"
-                value={formData.email}
+                value={formData.email || ''}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
@@ -57,7 +66,7 @@ const EditContractModal = ({ isOpen, onClose, onSave, section }: EditContractMod
             <Label htmlFor="placeOfService">Place of Service</Label>
             <Textarea
               id="placeOfService"
-              value={formData.placeOfService}
+              value={formData.placeOfService || ''}
               onChange={(e) => setFormData({ ...formData, placeOfService: e.target.value })}
             />
           </div>
@@ -69,8 +78,7 @@ const EditContractModal = ({ isOpen, onClose, onSave, section }: EditContractMod
               <Label htmlFor="startDate">Start Date</Label>
               <Input
                 id="startDate"
-                type="datetime-local"
-                value={formData.startDate}
+                value={formData.startDate || ''}
                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
               />
             </div>
@@ -78,8 +86,7 @@ const EditContractModal = ({ isOpen, onClose, onSave, section }: EditContractMod
               <Label htmlFor="endDate">End Date</Label>
               <Input
                 id="endDate"
-                type="datetime-local"
-                value={formData.endDate}
+                value={formData.endDate || ''}
                 onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
               />
             </div>
@@ -91,7 +98,7 @@ const EditContractModal = ({ isOpen, onClose, onSave, section }: EditContractMod
             <Label htmlFor="rate">Contract Rate</Label>
             <Input
               id="rate"
-              value={formData.rate}
+              value={formData.rate || ''}
               onChange={(e) => setFormData({ ...formData, rate: e.target.value })}
             />
           </div>
@@ -105,7 +112,7 @@ const EditContractModal = ({ isOpen, onClose, onSave, section }: EditContractMod
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit {section.title}</DialogTitle>
+          <DialogTitle>Edit {section?.title || 'Contract Details'}</DialogTitle>
           <DialogDescription>
             Make changes to the contract details below.
           </DialogDescription>

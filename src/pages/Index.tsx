@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import ContractStepper, { Step } from '@/components/contract/ContractStepper';
 import ContractSummary from '@/components/contract/ContractSummary';
@@ -24,7 +24,7 @@ import {
   History,
   MessageSquare
 } from 'lucide-react';
-import { Contract, PaymentInterval, PaymentTranche } from '@/types/contract';
+import { Contract, ContractHistoryItem, PaymentInterval, PaymentTranche } from '@/types/contract';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -202,6 +202,7 @@ const Index = () => {
       selectedPaymentType: undefined,
       selectedPaymentFrequency: undefined
     },
+    history: [],
     createdAt: '2023-09-10T10:00:00Z',
     updatedAt: '2023-09-10T10:00:00Z',
   });
@@ -257,6 +258,23 @@ const Index = () => {
         setContract(prev => ({ ...prev, details: { ...prev.details, rate: data.rate } }));
         break;
     }
+
+    const historyItem: ContractHistoryItem = {
+      id: `history-${Date.now()}`,
+      date: new Date().toISOString(),
+      action: `Edited ${editModal.section.title}`,
+      user: isFromUser ? contract.from.name : contract.to.name,
+    };
+    
+    setContract(prev => ({
+      ...prev,
+      history: [...(prev.history || []), historyItem]
+    }));
+
+    toast({
+      title: "Changes Saved",
+      description: `${editModal.section.title} has been updated.`,
+    });
   };
 
   const handleSign = (signature: string) => {
@@ -280,6 +298,11 @@ const Index = () => {
       ...prev,
       history: [...(prev.history || []), historyItem]
     }));
+
+    toast({
+      title: "Contract Signed",
+      description: "Your signature has been added to the contract.",
+    });
   };
 
   const handleSendForReview = () => {
@@ -515,7 +538,7 @@ const Index = () => {
             </Button>
             
             <Button 
-              onClick={toggleDesign}
+              onClick={() => setUseAlternativeDesign(prev => !prev)}
               variant="outline"
               className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100"
             >
@@ -541,7 +564,7 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="mb-4 grid grid-cols-5 gap-2 bg-gray-100 p-1">
+              <TabsList className="mb-4 grid grid-cols-6 gap-2 bg-gray-100 p-1">
                 <TabsTrigger value="overview">
                   <FileText className="w-4 h-4 mr-2" />
                   Overview
@@ -577,33 +600,7 @@ const Index = () => {
                   <CardContent className="pt-4">
                     <ContractSummary 
                       contract={contract}
-                      onEdit={(field, value) => {
-                        const updatedContract = { ...contract };
-                        switch (field) {
-                          case 'fromName':
-                            updatedContract.from.name = value;
-                            break;
-                          case 'toName':
-                            updatedContract.to.name = value;
-                            break;
-                          case 'placeOfService':
-                            updatedContract.details.placeOfService = value;
-                            break;
-                          case 'rate':
-                            updatedContract.details.rate = value;
-                            break;
-                          case 'duration':
-                            const [start, end] = value.split(' - ');
-                            updatedContract.details.startDate = start;
-                            updatedContract.details.endDate = end;
-                            break;
-                        }
-                        setContract(updatedContract);
-                        toast({
-                          title: "Updated Successfully",
-                          description: `${field} has been updated.`,
-                        });
-                      }}
+                      onEdit={handleEdit}
                     />
                   </CardContent>
                 </Card>
@@ -613,7 +610,7 @@ const Index = () => {
                 <PaymentPlanDisplay 
                   paymentType={contract.payment?.selectedPaymentType}
                   paymentFrequency={contract.payment?.selectedPaymentFrequency}
-                  interval={selectedPaymentInterval}
+                  interval={getPaymentIntervalDetails(contract.payment?.selectedPaymentFrequency)}
                   isFromUser={isFromUser}
                   onRequestPayment={handleRequestPayment}
                   onApprovePayment={handleApprovePayment}

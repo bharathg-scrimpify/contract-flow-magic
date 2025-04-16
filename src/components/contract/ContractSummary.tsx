@@ -28,10 +28,20 @@ export interface ContractSummaryProps {
     progress: number;
   };
   onEdit?: (type: 'from' | 'to' | 'place' | 'duration' | 'rate', title: string, data: any) => void;
+  onSendForReview?: () => void;
+  onDelete?: () => void;
+  onDownloadPdf?: () => void;
   className?: string;
 }
 
-const ContractSummary = ({ contract, onEdit, className }: ContractSummaryProps) => {
+const ContractSummary = ({ 
+  contract, 
+  onEdit, 
+  onSendForReview,
+  onDelete,
+  onDownloadPdf,
+  className 
+}: ContractSummaryProps) => {
   return (
     <div className={cn("rounded-lg bg-white border border-gray-200", className)}>
       <div className="p-6 space-y-6">
@@ -208,6 +218,40 @@ const ContractSummary = ({ contract, onEdit, className }: ContractSummaryProps) 
             </div>
           </div>
         </div>
+
+        {/* Action buttons */}
+        {(onSendForReview || onDelete || onDownloadPdf) && (
+          <div className="space-y-3 pt-2">
+            {onSendForReview && (
+              <Button 
+                onClick={onSendForReview} 
+                className="w-full"
+              >
+                Send for Review
+              </Button>
+            )}
+            
+            {onDownloadPdf && (
+              <Button 
+                onClick={onDownloadPdf} 
+                variant="outline" 
+                className="w-full"
+              >
+                Download PDF
+              </Button>
+            )}
+            
+            {onDelete && (
+              <Button 
+                onClick={onDelete} 
+                variant="outline" 
+                className="w-full text-red-600 hover:bg-red-50 border-red-200"
+              >
+                Delete Contract
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
