@@ -547,129 +547,122 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-soft border border-gray-100 p-8 mb-8">
-          <ContractStepper steps={contractSteps} />
-        </div>
-
-        <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start mb-8 animate-fade-in">
-          <Info className="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
-          <div>
-            <p className="text-blue-800 font-medium">Confirm the details, add your signature and send for review.</p>
-            <p className="text-sm text-blue-600">
-              Please review all contract details carefully before sending it for review.
-            </p>
+        <div className="grid grid-cols-12 gap-8">
+          <div className="col-span-3">
+            <div className="sticky top-24 bg-white rounded-lg shadow-soft border border-gray-100 p-8">
+              <ContractStepper steps={contractSteps} />
+            </div>
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="mb-4 grid grid-cols-6 gap-2 bg-gray-100 p-1">
-                <TabsTrigger value="overview">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Overview
-                </TabsTrigger>
-                <TabsTrigger value="payments">
-                  <DollarSign className="w-4 h-4 mr-2" />
-                  Payments
-                </TabsTrigger>
-                <TabsTrigger value="signature">
-                  <Edit className="w-4 h-4 mr-2" />
-                  Signature
-                </TabsTrigger>
-                <TabsTrigger value="files">
-                  <Paperclip className="w-4 h-4 mr-2" />
-                  Files
-                </TabsTrigger>
-                <TabsTrigger value="chat">
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Chat
-                </TabsTrigger>
-                <TabsTrigger value="history">
-                  <History className="w-4 h-4 mr-2" />
-                  History
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="overview" className="space-y-6 animate-fade-in">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium">Contract Overview</CardTitle>
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    <ContractSummary 
-                      contract={contract}
-                      onEdit={handleEdit}
-                    />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="payments" className="space-y-6 animate-fade-in">
-                <PaymentPlanDisplay 
-                  paymentType={contract.payment?.selectedPaymentType}
-                  paymentFrequency={contract.payment?.selectedPaymentFrequency}
-                  interval={getPaymentIntervalDetails(contract.payment?.selectedPaymentFrequency)}
-                  isFromUser={isFromUser}
-                  onRequestPayment={handleRequestPayment}
-                  onApprovePayment={handleApprovePayment}
-                  onCancelPayment={handleCancelPayment}
-                />
-              </TabsContent>
-              
-              <TabsContent value="signature" className="space-y-6 animate-fade-in">
-                <SignatureTab
-                  contract={contract}
-                  isFromUser={isFromUser}
-                  onSign={handleSign}
-                />
-              </TabsContent>
-              
-              <TabsContent value="files" className="space-y-6 animate-fade-in">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Contract Files</CardTitle>
-                    <CardDescription>View and manage contract documents</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center py-8 border border-dashed rounded-lg">
-                      <Paperclip className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-500">Drag and drop files here or click to browse</p>
-                      <Button variant="outline" className="mt-4">Add Files</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="chat" className="space-y-6 animate-fade-in">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Contract Discussion</CardTitle>
-                    <CardDescription>Chat with other parties involved in this contract</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-[400px] flex items-center justify-center border-2 border-dashed rounded-lg">
-                      <p className="text-gray-500">Chat feature coming soon</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="history" className="space-y-6 animate-fade-in">
-                <HistoryTab history={contract.history} />
-              </TabsContent>
-            </Tabs>
-          </div>
-          
-          <div className="lg:col-span-1">
-            <div className="sticky top-24">
-              <ContractSummary 
-                contract={contract}
-                onSendForReview={handleSendForReview}
-                onDelete={handleDeleteContract}
-                onDownloadPdf={handleDownloadPdf}
-              />
+          <div className="col-span-9">
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start mb-8 animate-fade-in">
+              <Info className="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
+              <div>
+                <p className="text-blue-800 font-medium">Confirm the details, add your signature and send for review.</p>
+                <p className="text-sm text-blue-600">
+                  Please review all contract details carefully before sending it for review.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="mb-4 grid grid-cols-6 gap-2 bg-gray-100 p-1">
+                  <TabsTrigger value="overview">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Overview
+                  </TabsTrigger>
+                  <TabsTrigger value="payments">
+                    <DollarSign className="w-4 h-4 mr-2" />
+                    Payments
+                  </TabsTrigger>
+                  <TabsTrigger value="signature">
+                    <Edit className="w-4 h-4 mr-2" />
+                    Signature
+                  </TabsTrigger>
+                  <TabsTrigger value="files">
+                    <Paperclip className="w-4 h-4 mr-2" />
+                    Files
+                  </TabsTrigger>
+                  <TabsTrigger value="chat">
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Chat
+                  </TabsTrigger>
+                  <TabsTrigger value="history">
+                    <History className="w-4 h-4 mr-2" />
+                    History
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="overview" className="space-y-6 animate-fade-in">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-lg font-medium">Contract Overview</CardTitle>
+                      <CheckCircle2 className="h-5 w-5 text-green-500" />
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <ContractSummary 
+                        contract={contract}
+                        onEdit={handleEdit}
+                      />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                
+                <TabsContent value="payments" className="space-y-6 animate-fade-in">
+                  <PaymentPlanDisplay 
+                    paymentType={contract.payment?.selectedPaymentType}
+                    paymentFrequency={contract.payment?.selectedPaymentFrequency}
+                    interval={getPaymentIntervalDetails(contract.payment?.selectedPaymentFrequency)}
+                    isFromUser={isFromUser}
+                    onRequestPayment={handleRequestPayment}
+                    onApprovePayment={handleApprovePayment}
+                    onCancelPayment={handleCancelPayment}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="signature" className="space-y-6 animate-fade-in">
+                  <SignatureTab
+                    contract={contract}
+                    isFromUser={isFromUser}
+                    onSign={handleSign}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="files" className="space-y-6 animate-fade-in">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Contract Files</CardTitle>
+                      <CardDescription>View and manage contract documents</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-8 border border-dashed rounded-lg">
+                        <Paperclip className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-gray-500">Drag and drop files here or click to browse</p>
+                        <Button variant="outline" className="mt-4">Add Files</Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                
+                <TabsContent value="chat" className="space-y-6 animate-fade-in">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Contract Discussion</CardTitle>
+                      <CardDescription>Chat with other parties involved in this contract</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[400px] flex items-center justify-center border-2 border-dashed rounded-lg">
+                        <p className="text-gray-500">Chat feature coming soon</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                
+                <TabsContent value="history" className="space-y-6 animate-fade-in">
+                  <HistoryTab history={contract.history} />
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
         </div>
