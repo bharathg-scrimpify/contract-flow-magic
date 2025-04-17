@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import ContractStepper, { Step } from '@/components/contract/ContractStepper';
@@ -41,6 +40,151 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, addDays, addWeeks, addMonths } from 'date-fns';
+
+const generatePaymentData = (
+  frequency: 'Monthly' | 'Weekly' | 'Daily',
+  startDateStr: string, 
+  endDateStr: string, 
+  totalAmount: number = 1000.00
+): PaymentInterval => {
+  let startDate: Date;
+  let endDate: Date;
+  
+  try {
+    startDate = new Date(startDateStr);
+    endDate = new Date(endDateStr);
+  } catch (e) {
+    const startParts = startDateStr.split(',')[0].split(' ');
+    const endParts = endDateStr.split(',')[0].split(' ');
+    
+    const monthMap: {[key: string]: number} = {
+      'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+      'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+    };
+    
+    startDate = new Date(
+      parseInt(startParts[2]), // year
+      monthMap[startParts[0]], // month
+      parseInt(startParts[1])  // day
+    );
+    
+    endDate = new Date(
+      parseInt(endParts[2]), // year
+      monthMap[endParts[0]], // month
+      parseInt(endParts[1])  // day
+    );
+  }
+  
+  let tranches: PaymentTranche[] = [];
+  
+  if (frequency === 'Monthly') {
+    let currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+      tranches.push({
+        DueDate: format(currentDate, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
+        Amount: {
+          CurrencyCode: "USD",
+          Value: 0
+        },
+        Status: "not_paid"
+      });
+      currentDate = addMonths(currentDate, 1);
+    }
+  } else if (frequency === 'Weekly') {
+    let currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+      tranches.push({
+        DueDate: format(currentDate, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
+        Amount: {
+          CurrencyCode: "USD",
+          Value: 0
+        },
+        Status: "not_paid"
+      });
+      currentDate = addWeeks(currentDate, 1);
+    }
+  } else if (frequency === 'Daily') {
+    let currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+      tranches.push({
+        DueDate: format(currentDate, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
+        Amount: {
+          CurrencyCode: "USD",
+          Value: 0
+        },
+        Status: "not_paid"
+      });
+      currentDate = addDays(currentDate, 1);
+    }
+  }
+  
+  if (tranches.length === 0) {
+    tranches.push({
+      DueDate: new Date().toISOString(),
+      Amount: {
+        CurrencyCode: "USD",
+        Value: totalAmount
+      },
+      Status: "not_paid"
+    });
+  }
+  
+  const count = tranches.length;
+  const baseAmount = parseFloat((totalAmount / count).toFixed(2));
+  let remaining = totalAmount;
+  
+  for (let i = 0; i < count; i++) {
+    if (i === count - 1) {
+      tranches[i].Amount.Value = parseFloat(remaining.toFixed(2));
+    } else {
+      tranches[i].Amount.Value = baseAmount;
+      remaining -= baseAmount;
+    }
+  }
+  
+  return {
+    PaymentFrequency: frequency,
+    Tranches: tranches
+  };
+};
+
+const createInitialPaymentPlans = () => {
+  const totalAmount = 1000.00;
+  
+  const startDate = 'Mar 18 2025, 1:58 PM';
+  const endDate = 'Mar 25 2025, 1:58 PM';
+  
+  return {
+    NeedPayableAmount: {
+      CurrencyCode: "USD",
+      Value: totalAmount
+    },
+    OfferReceivableAmount: {
+      CurrencyCode: "USD",
+      Value: 950.00
+    },
+    PlatformFee: {
+      FromNeed: {
+        CurrencyCode: "USD",
+        Value: 50.00
+      },
+      FromOffer: {
+        CurrencyCode: "USD",
+        Value: 25.00
+      }
+    },
+    PaymentPlans: [
+      {
+        PaymentOption: "Full" as const,
+        PaymentIntervals: [
+          generatePaymentData('Monthly', startDate, endDate),
+          generatePaymentData('Weekly', startDate, endDate),
+          generatePaymentData('Daily', startDate, endDate)
+        ]
+      }
+    ]
+  };
+};
 
 const Index = () => {
   const { toast } = useToast();
@@ -97,151 +241,6 @@ const Index = () => {
       description: 'Contract successfully completed'
     },
   ]);
-  
-  // Function to generate payment data based on selected frequency and contract details
-  const generatePaymentData = (frequency: 'Monthly' | 'Weekly' | 'Daily'): PaymentInterval => {
-    const totalAmount = 1000.00;
-    const { startDate: startDateStr, endDate: endDateStr } = contract.details;
-    
-    // Parse dates
-    let startDate: Date;
-    let endDate: Date;
-    
-    try {
-      startDate = new Date(startDateStr);
-      endDate = new Date(endDateStr);
-    } catch (e) {
-      // If the date format is not standard, try to parse it manually
-      const startParts = startDateStr.split(',')[0].split(' ');
-      const endParts = endDateStr.split(',')[0].split(' ');
-      
-      const monthMap: {[key: string]: number} = {
-        'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
-        'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
-      };
-      
-      startDate = new Date(
-        parseInt(startParts[2]), // year
-        monthMap[startParts[0]], // month
-        parseInt(startParts[1])  // day
-      );
-      
-      endDate = new Date(
-        parseInt(endParts[2]), // year
-        monthMap[endParts[0]], // month
-        parseInt(endParts[1])  // day
-      );
-    }
-    
-    let tranches: PaymentTranche[] = [];
-    
-    if (frequency === 'Monthly') {
-      // Generate monthly payments
-      let currentDate = new Date(startDate);
-      while (currentDate <= endDate) {
-        tranches.push({
-          DueDate: format(currentDate, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
-          Amount: {
-            CurrencyCode: "USD",
-            Value: 0 // Will be adjusted later
-          },
-          Status: "not_paid"
-        });
-        currentDate = addMonths(currentDate, 1);
-      }
-    } else if (frequency === 'Weekly') {
-      // Generate weekly payments
-      let currentDate = new Date(startDate);
-      while (currentDate <= endDate) {
-        tranches.push({
-          DueDate: format(currentDate, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
-          Amount: {
-            CurrencyCode: "USD",
-            Value: 0 // Will be adjusted later
-          },
-          Status: "not_paid"
-        });
-        currentDate = addWeeks(currentDate, 1);
-      }
-    } else if (frequency === 'Daily') {
-      // Generate daily payments
-      let currentDate = new Date(startDate);
-      while (currentDate <= endDate) {
-        tranches.push({
-          DueDate: format(currentDate, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
-          Amount: {
-            CurrencyCode: "USD",
-            Value: 0 // Will be adjusted later
-          },
-          Status: "not_paid"
-        });
-        currentDate = addDays(currentDate, 1);
-      }
-    }
-    
-    // If we have no tranches (eg. if dates were invalid), create at least one
-    if (tranches.length === 0) {
-      tranches.push({
-        DueDate: new Date().toISOString(),
-        Amount: {
-          CurrencyCode: "USD",
-          Value: totalAmount
-        },
-        Status: "not_paid"
-      });
-    }
-    
-    // Adjust payment amounts to ensure total is correct
-    const count = tranches.length;
-    const baseAmount = parseFloat((totalAmount / count).toFixed(2));
-    let remaining = totalAmount;
-    
-    for (let i = 0; i < count; i++) {
-      if (i === count - 1) {
-        // Last payment - assign the remaining amount to avoid floating point issues
-        tranches[i].Amount.Value = parseFloat(remaining.toFixed(2));
-      } else {
-        tranches[i].Amount.Value = baseAmount;
-        remaining -= baseAmount;
-      }
-    }
-    
-    return {
-      PaymentFrequency: frequency,
-      Tranches: tranches
-    };
-  };
-
-  const mockPaymentPlans = {
-    NeedPayableAmount: {
-      CurrencyCode: "USD",
-      Value: 1000.00
-    },
-    OfferReceivableAmount: {
-      CurrencyCode: "USD",
-      Value: 950.00
-    },
-    PlatformFee: {
-      FromNeed: {
-        CurrencyCode: "USD",
-        Value: 50.00
-      },
-      FromOffer: {
-        CurrencyCode: "USD",
-        Value: 25.00
-      }
-    },
-    PaymentPlans: [
-      {
-        PaymentOption: "Full" as const,
-        PaymentIntervals: [
-          generatePaymentData('Monthly'),
-          generatePaymentData('Weekly'),
-          generatePaymentData('Daily')
-        ]
-      }
-    ]
-  };
 
   const [contract, setContract] = useState<Contract>({
     id: 'c-12345',
@@ -265,11 +264,7 @@ const Index = () => {
       rate: 'USD 22/hour',
       mealsIncluded: true,
     },
-    payment: {
-      ...mockPaymentPlans,
-      selectedPaymentType: undefined,
-      selectedPaymentFrequency: undefined
-    },
+    payment: createInitialPaymentPlans(),
     history: [],
     createdAt: '2023-09-10T10:00:00Z',
     updatedAt: '2023-09-10T10:00:00Z',
@@ -297,35 +292,32 @@ const Index = () => {
     }
   });
 
-  // Update payment intervals when payment frequency changes
   useEffect(() => {
-    if (selectedPaymentFrequency) {
-      // Generate new payment interval for the selected frequency
-      const updatedInterval = generatePaymentData(selectedPaymentFrequency);
+    if (selectedPaymentFrequency && contract) {
+      const updatedInterval = generatePaymentData(
+        selectedPaymentFrequency, 
+        contract.details.startDate, 
+        contract.details.endDate
+      );
       
-      // Create a deep copy of the payment object
       const updatedPayment = { ...contract.payment! };
       
-      // Find the index of the interval to update
       const indexToUpdate = updatedPayment.PaymentPlans[0].PaymentIntervals.findIndex(
         interval => interval.PaymentFrequency === selectedPaymentFrequency
       );
       
       if (indexToUpdate !== -1) {
-        // Replace the existing interval
         updatedPayment.PaymentPlans[0].PaymentIntervals[indexToUpdate] = updatedInterval;
       } else {
-        // Add new interval
         updatedPayment.PaymentPlans[0].PaymentIntervals.push(updatedInterval);
       }
       
-      // Update the contract with the new payment data
       setContract(prev => ({
         ...prev,
         payment: updatedPayment
       }));
     }
-  }, [selectedPaymentFrequency, contract.details]);
+  }, [selectedPaymentFrequency, contract?.details]);
 
   const handleEdit = (type: 'from' | 'to' | 'place' | 'duration' | 'rate', title: string, data: any) => {
     setEditModal({
@@ -509,7 +501,6 @@ const Index = () => {
       return;
     }
     
-    // Create a deep copy of the payment object
     const updatedPayment = { ...contract.payment! };
     updatedPayment.selectedPaymentType = selectedPaymentType;
     updatedPayment.selectedPaymentFrequency = selectedPaymentType === 'partial' ? selectedPaymentFrequency : undefined;
