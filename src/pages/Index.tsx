@@ -26,7 +26,9 @@ import {
   Send,
   FileSignature,
   PlayCircle,
-  CheckCheck
+  CheckCheck,
+  UserRound,
+  RefreshCw
 } from 'lucide-react';
 import { Contract, ContractHistoryItem, PaymentInterval, PaymentTranche } from '@/types/contract';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -733,6 +735,16 @@ const Index = () => {
     return false;
   };
 
+  const toggleUserView = () => {
+    setIsFromUser(!isFromUser);
+    toast({
+      title: `Switched to ${!isFromUser ? 'FROM' : 'TO'} User View`,
+      description: `You are now viewing the contract as ${!isFromUser ? contract.from.name : contract.to.name}.`,
+    });
+    
+    updateStepperStatus();
+  };
+
   const showStartContractButton = isFromUser && contract.status === 'active';
 
   const isContractEditable = isFromUser && contract.status === 'draft';
@@ -781,6 +793,15 @@ const Index = () => {
           </div>
           
           <div className="flex items-center gap-3">
+            <Button 
+              onClick={toggleUserView}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Switch to {isFromUser ? 'TO' : 'FROM'} User
+            </Button>
+            
             {contract.status === 'active' && isFromUser && (
               <Button 
                 onClick={handleStartContract}
