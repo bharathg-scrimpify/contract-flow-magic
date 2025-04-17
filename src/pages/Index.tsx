@@ -427,13 +427,13 @@ const Index = () => {
         setContract(prev => ({ ...prev, to: data }));
         break;
       case 'place':
-        setContract(prev => ({ ...prev, details: { ...prev.details, placeOfService: data.placeOfService } }));
+        setContract(prev => ({ ...prev.details, placeOfService: data.placeOfService } }));
         break;
       case 'duration':
-        setContract(prev => ({ ...prev, details: { ...prev.details, startDate: data.startDate, endDate: data.endDate } }));
+        setContract(prev => ({ ...prev.details, startDate: data.startDate, endDate: data.endDate } }));
         break;
       case 'rate':
-        setContract(prev => ({ ...prev, details: { ...prev.details, rate: data.rate } }));
+        setContract(prev => ({ ...prev.details, rate: data.rate } }));
         break;
     }
 
@@ -501,16 +501,6 @@ const Index = () => {
         variant: "destructive"
       });
       setActiveTab('signature');
-      return;
-    }
-    
-    if (!contract.payment?.selectedPaymentType) {
-      toast({
-        title: "Payment Method Required",
-        description: "Please select a payment method before sending for review.",
-        variant: "destructive"
-      });
-      setActiveTab('payments');
       return;
     }
 
@@ -967,22 +957,4 @@ const Index = () => {
           'Approve completion and leave feedback' : 
           'Waiting for approval';
         newSteps[4].actionIcon = isFromUser ?
-          <div className="flex items-center text-xs text-blue-600">
-            <ThumbsUp className="w-3 h-3 mr-1" /> Complete Contract
-          </div> : undefined;
-        break;
-      case 'completed':
-        newSteps[0].status = 'completed';
-        newSteps[1].status = 'completed';
-        newSteps[2].status = 'completed';
-        newSteps[3].status = 'completed';
-        newSteps[4].status = 'completed';
-        newSteps[5].status = 'completed';
-        newSteps[5].description = 'Contract successfully completed';
-        break;
-    }
-    
-    setContractSteps(newSteps);
-  };
-
-export default Index;
+          <div className="flex items-center text-
