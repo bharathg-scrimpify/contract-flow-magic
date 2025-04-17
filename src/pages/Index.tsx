@@ -8,7 +8,7 @@ import PaymentSchedule from '@/components/contract/PaymentSchedule';
 import EditContractModal from '@/components/contract/EditContractModal';
 import SignatureTab from '@/components/contract/SignatureTab';
 import HistoryTab from '@/components/contract/HistoryTab';
-import { cn } from '@/lib/utils';  // Add this import for cn utility
+import { cn } from '@/lib/utils';
 import { 
   Info, 
   Edit, 
@@ -275,7 +275,6 @@ const Index = () => {
     }
   });
 
-  // Generate payment schedules based on contract details
   const generatePaymentSchedules = () => {
     const { details } = contract;
     let startDate: Date;
@@ -285,7 +284,6 @@ const Index = () => {
       startDate = new Date(details.startDate);
       endDate = new Date(details.endDate);
     } catch (e) {
-      // If the date format is not standard, try to parse it manually
       const startParts = details.startDate.split(',')[0].split(' ');
       const endParts = details.endDate.split(',')[0].split(' ');
       
@@ -295,19 +293,18 @@ const Index = () => {
       };
       
       startDate = new Date(
-        parseInt(startParts[2]), // year
-        monthMap[startParts[0]], // month
-        parseInt(startParts[1])  // day
+        parseInt(startParts[2]),
+        monthMap[startParts[0]],
+        parseInt(startParts[1])
       );
       
       endDate = new Date(
-        parseInt(endParts[2]), // year
-        monthMap[endParts[0]], // month
-        parseInt(endParts[1])  // day
+        parseInt(endParts[2]),
+        monthMap[endParts[0]],
+        parseInt(endParts[1])
       );
     }
     
-    // For one-time payment
     const oneTimePayment: PaymentInterval = {
       PaymentFrequency: 'Monthly',
       Tranches: [
@@ -322,7 +319,6 @@ const Index = () => {
       ]
     };
     
-    // For monthly payments
     const monthlyPayments: PaymentInterval = {
       PaymentFrequency: 'Monthly',
       Tranches: []
@@ -341,7 +337,6 @@ const Index = () => {
       currentDate = addMonths(currentDate, 1);
     }
     
-    // For weekly payments
     const weeklyPayments: PaymentInterval = {
       PaymentFrequency: 'Weekly',
       Tranches: []
@@ -360,7 +355,6 @@ const Index = () => {
       currentDate = addWeeks(currentDate, 1);
     }
     
-    // For daily payments
     const dailyPayments: PaymentInterval = {
       PaymentFrequency: 'Daily',
       Tranches: []
@@ -381,7 +375,6 @@ const Index = () => {
       currentDate = addDays(currentDate, 1);
     }
     
-    // Ensure the total amount is the same for all payment types
     const adjustPaymentAmounts = (interval: PaymentInterval, totalAmount: number) => {
       const count = interval.Tranches.length;
       const baseAmount = parseFloat((totalAmount / count).toFixed(2));
@@ -389,7 +382,6 @@ const Index = () => {
       
       for (let i = 0; i < count; i++) {
         if (i === count - 1) {
-          // Last payment - assign the remaining amount to avoid floating point issues
           interval.Tranches[i].Amount.Value = parseFloat(remaining.toFixed(2));
         } else {
           interval.Tranches[i].Amount.Value = baseAmount;
@@ -410,7 +402,6 @@ const Index = () => {
     ];
   };
 
-  // Initialize payment intervals
   useEffect(() => {
     const intervals = generatePaymentSchedules();
     setActivePaymentIntervals(intervals);
@@ -585,7 +576,6 @@ const Index = () => {
 
   const handleCompleteContract = () => {
     if (isFromUser) {
-      // From user can mark it as completed only when it's in pending_completion
       if (contract.status !== 'pending_completion') {
         toast({
           title: "Action Not Allowed",
@@ -595,7 +585,6 @@ const Index = () => {
         return;
       }
       
-      // Check if all payments are made
       const selectedInterval = getPaymentIntervalDetails(contract.payment?.selectedPaymentFrequency);
       if (selectedInterval) {
         const unpaidTranches = selectedInterval.Tranches.filter(t => t.Status !== 'paid');
@@ -612,7 +601,6 @@ const Index = () => {
       
       setIsFeedbackModalOpen(true);
     } else {
-      // To user initiates completion request
       if (contract.status !== 'in_progress') {
         toast({
           title: "Action Not Allowed",
@@ -689,11 +677,10 @@ const Index = () => {
       return;
     }
     
-    // Find the selected payment interval
     let selectedInterval: PaymentInterval | undefined;
     
     if (selectedPaymentType === 'one-time') {
-      selectedInterval = activePaymentIntervals[0]; // One-time payment
+      selectedInterval = activePaymentIntervals[0];
     } else if (selectedPaymentFrequency) {
       selectedInterval = activePaymentIntervals.find(
         interval => interval.PaymentFrequency === selectedPaymentFrequency
@@ -713,7 +700,6 @@ const Index = () => {
     updatedPayment.selectedPaymentType = selectedPaymentType;
     updatedPayment.selectedPaymentFrequency = selectedPaymentType === 'partial' ? selectedPaymentFrequency : 'Monthly';
     
-    // Replace the payment intervals with our generated ones
     updatedPayment.PaymentPlans[0].PaymentIntervals = activePaymentIntervals;
     
     setContract(prev => ({
@@ -932,7 +918,7 @@ const Index = () => {
         newSteps[0].status = 'current';
         newSteps[0].description = 'Review contract details and sign';
         newSteps[0].actionIcon = contract.from.signature ? 
-          <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
+          <Badge variant="outline" className={cn("bg-green-50 text-green-600 border-green-200")}>
             <CheckCheck className="w-3 h-3 mr-1" /> Signed
           </Badge> :
           <div className="flex items-center text-xs text-blue-600">
@@ -961,4 +947,42 @@ const Index = () => {
           </div> : undefined;
         break;
       case 'in_progress':
-        newSteps[0
+        newSteps[0].status = 'completed';
+        newSteps[1].status = 'completed';
+        newSteps[2].status = 'completed';
+        newSteps[3].status = 'current';
+        newSteps[3].description = 'Contract is in progress';
+        newSteps[3].actionIcon = !isFromUser ?
+          <div className="flex items-center text-xs text-blue-600">
+            <CheckCircle2 className="w-3 h-3 mr-1" /> Request Completion
+          </div> : undefined;
+        break;
+      case 'pending_completion':
+        newSteps[0].status = 'completed';
+        newSteps[1].status = 'completed';
+        newSteps[2].status = 'completed';
+        newSteps[3].status = 'completed';
+        newSteps[4].status = 'current';
+        newSteps[4].description = isFromUser ? 
+          'Approve completion and leave feedback' : 
+          'Waiting for approval';
+        newSteps[4].actionIcon = isFromUser ?
+          <div className="flex items-center text-xs text-blue-600">
+            <ThumbsUp className="w-3 h-3 mr-1" /> Complete Contract
+          </div> : undefined;
+        break;
+      case 'completed':
+        newSteps[0].status = 'completed';
+        newSteps[1].status = 'completed';
+        newSteps[2].status = 'completed';
+        newSteps[3].status = 'completed';
+        newSteps[4].status = 'completed';
+        newSteps[5].status = 'completed';
+        newSteps[5].description = 'Contract successfully completed';
+        break;
+    }
+    
+    setContractSteps(newSteps);
+  };
+
+export default Index;
