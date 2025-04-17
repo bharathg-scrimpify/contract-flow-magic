@@ -34,22 +34,6 @@ const PaymentPlanDisplay: React.FC<PaymentPlanDisplayProps> = ({
   onApprovePayment,
   onCancelPayment
 }) => {
-  if (!paymentType) {
-    return (
-      <div className="bg-amber-50 border border-amber-100 rounded-lg p-6 mb-8">
-        <div className="flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
-          <div>
-            <p className="text-amber-800 font-medium">No Payment Method Selected</p>
-            <p className="text-sm text-amber-600">
-              Please select a payment method in the Payments tab.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   if (paymentType === 'one-time') {
     return (
       <div className="bg-green-50 border border-green-100 rounded-lg p-6 mb-8 animate-fade-in">
@@ -58,31 +42,10 @@ const PaymentPlanDisplay: React.FC<PaymentPlanDisplayProps> = ({
           <div>
             <p className="text-green-800 font-medium">One-time Payment Selected</p>
             <p className="text-sm text-green-600">
-              {interval && interval.Tranches && interval.Tranches.length > 0 ? (
-                `Payment of ${interval.Tranches[0].Amount.CurrencyCode} ${interval.Tranches[0].Amount.Value.toFixed(2)} is due on ${formatDate(interval.Tranches[0].DueDate)}.`
-              ) : (
-                "You will be charged the full amount when this contract is accepted."
-              )}
+              You will be charged the full amount when this contract is accepted.
             </p>
           </div>
         </div>
-        {interval && interval.Tranches && interval.Tranches.length > 0 && (
-          <div className="mt-4 p-4 bg-white rounded-lg border border-green-100">
-            <div className="flex justify-between items-center mb-2">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-green-600" />
-                <span className="text-sm font-medium">Due Date: {formatDate(interval.Tranches[0].DueDate)}</span>
-              </div>
-              <div className="font-medium">
-                {interval.Tranches[0].Amount.CurrencyCode} {interval.Tranches[0].Amount.Value.toFixed(2)}
-              </div>
-            </div>
-            <div className="flex justify-between items-center">
-              <StatusBadge status={interval.Tranches[0].Status || 'not_paid'} />
-              {renderActions(interval.Tranches[0], 0, isFromUser)}
-            </div>
-          </div>
-        )}
       </div>
     );
   }

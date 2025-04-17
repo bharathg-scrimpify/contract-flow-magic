@@ -30,7 +30,7 @@ const PaymentSchedule: React.FC<PaymentScheduleProps> = ({ interval, selected, o
   return (
     <div 
       className={cn(
-        "border rounded-lg p-4 cursor-pointer transition-all duration-200 mb-4",
+        "border rounded-lg p-4 cursor-pointer transition-all duration-200",
         selected 
           ? "border-blue-300 bg-blue-50 shadow-sm" 
           : "border-gray-200 hover:border-blue-200"

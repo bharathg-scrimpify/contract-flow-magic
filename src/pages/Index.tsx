@@ -3,12 +3,11 @@ import { useToast } from '@/components/ui/use-toast';
 import ContractStepper, { Step } from '@/components/contract/ContractStepper';
 import ContractSummary from '@/components/contract/ContractSummary';
 import ReviewPanel from '@/components/contract/ReviewPanel';
+import ReviewModal from '@/components/contract/ReviewModal';
 import PaymentPlanDisplay from '@/components/contract/PaymentPlanDisplay';
-import PaymentSchedule from '@/components/contract/PaymentSchedule';
 import EditContractModal from '@/components/contract/EditContractModal';
 import SignatureTab from '@/components/contract/SignatureTab';
 import HistoryTab from '@/components/contract/HistoryTab';
-import { cn } from '@/lib/utils';
 import { 
   Info, 
   Edit, 
@@ -27,9 +26,7 @@ import {
   Send,
   FileSignature,
   PlayCircle,
-  CheckCheck,
-  ThumbsUp,
-  AlertCircle
+  CheckCheck
 } from 'lucide-react';
 import { Contract, ContractHistoryItem, PaymentInterval, PaymentTranche } from '@/types/contract';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -42,21 +39,16 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { format, addDays, addWeeks, addMonths } from 'date-fns';
 
 const Index = () => {
   const { toast } = useToast();
   const [isReviewPanelOpen, setIsReviewPanelOpen] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [useAlternativeDesign, setUseAlternativeDesign] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [isFromUser, setIsFromUser] = useState(true);
   const [selectedPaymentType, setSelectedPaymentType] = useState<'one-time' | 'partial' | undefined>(undefined);
   const [selectedPaymentFrequency, setSelectedPaymentFrequency] = useState<'Monthly' | 'Weekly' | 'Daily' | undefined>(undefined);
-  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
-  const [feedbackRating, setFeedbackRating] = useState(5);
-  const [feedbackComment, setFeedbackComment] = useState('');
-  const [activePaymentIntervals, setActivePaymentIntervals] = useState<PaymentInterval[]>([]);
-  
   const [editingSections, setEditingSections] = useState({
     from: false,
     to: false,
@@ -275,138 +267,6 @@ const Index = () => {
     }
   });
 
-  const generatePaymentSchedules = () => {
-    const { details } = contract;
-    let startDate: Date;
-    let endDate: Date;
-    
-    try {
-      startDate = new Date(details.startDate);
-      endDate = new Date(details.endDate);
-    } catch (e) {
-      const startParts = details.startDate.split(',')[0].split(' ');
-      const endParts = details.endDate.split(',')[0].split(' ');
-      
-      const monthMap: {[key: string]: number} = {
-        'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
-        'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
-      };
-      
-      startDate = new Date(
-        parseInt(startParts[2]),
-        monthMap[startParts[0]],
-        parseInt(startParts[1])
-      );
-      
-      endDate = new Date(
-        parseInt(endParts[2]),
-        monthMap[endParts[0]],
-        parseInt(endParts[1])
-      );
-    }
-    
-    const oneTimePayment: PaymentInterval = {
-      PaymentFrequency: 'Monthly',
-      Tranches: [
-        {
-          DueDate: endDate.toISOString(),
-          Amount: {
-            CurrencyCode: "USD",
-            Value: 1000.00
-          },
-          Status: "not_paid"
-        }
-      ]
-    };
-    
-    const monthlyPayments: PaymentInterval = {
-      PaymentFrequency: 'Monthly',
-      Tranches: []
-    };
-    
-    let currentDate = new Date(startDate);
-    while (currentDate <= endDate) {
-      monthlyPayments.Tranches.push({
-        DueDate: currentDate.toISOString(),
-        Amount: {
-          CurrencyCode: "USD",
-          Value: 500.00
-        },
-        Status: "not_paid"
-      });
-      currentDate = addMonths(currentDate, 1);
-    }
-    
-    const weeklyPayments: PaymentInterval = {
-      PaymentFrequency: 'Weekly',
-      Tranches: []
-    };
-    
-    currentDate = new Date(startDate);
-    while (currentDate <= endDate) {
-      weeklyPayments.Tranches.push({
-        DueDate: currentDate.toISOString(),
-        Amount: {
-          CurrencyCode: "USD",
-          Value: 250.00
-        },
-        Status: "not_paid"
-      });
-      currentDate = addWeeks(currentDate, 1);
-    }
-    
-    const dailyPayments: PaymentInterval = {
-      PaymentFrequency: 'Daily',
-      Tranches: []
-    };
-    
-    currentDate = new Date(startDate);
-    let dailyAmount = 1000 / (Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
-    
-    while (currentDate <= endDate) {
-      dailyPayments.Tranches.push({
-        DueDate: currentDate.toISOString(),
-        Amount: {
-          CurrencyCode: "USD",
-          Value: parseFloat(dailyAmount.toFixed(2))
-        },
-        Status: "not_paid"
-      });
-      currentDate = addDays(currentDate, 1);
-    }
-    
-    const adjustPaymentAmounts = (interval: PaymentInterval, totalAmount: number) => {
-      const count = interval.Tranches.length;
-      const baseAmount = parseFloat((totalAmount / count).toFixed(2));
-      let remaining = totalAmount;
-      
-      for (let i = 0; i < count; i++) {
-        if (i === count - 1) {
-          interval.Tranches[i].Amount.Value = parseFloat(remaining.toFixed(2));
-        } else {
-          interval.Tranches[i].Amount.Value = baseAmount;
-          remaining -= baseAmount;
-        }
-      }
-      
-      return interval;
-    };
-    
-    const totalAmount = 1000;
-    
-    return [
-      oneTimePayment,
-      adjustPaymentAmounts(monthlyPayments, totalAmount),
-      adjustPaymentAmounts(weeklyPayments, totalAmount),
-      adjustPaymentAmounts(dailyPayments, totalAmount)
-    ];
-  };
-
-  useEffect(() => {
-    const intervals = generatePaymentSchedules();
-    setActivePaymentIntervals(intervals);
-  }, [contract.details]);
-
   const handleEdit = (type: 'from' | 'to' | 'place' | 'duration' | 'rate', title: string, data: any) => {
     setEditModal({
       isOpen: true,
@@ -427,13 +287,13 @@ const Index = () => {
         setContract(prev => ({ ...prev, to: data }));
         break;
       case 'place':
-        setContract(prev => ({ ...prev.details, placeOfService: data.placeOfService } }));
+        setContract(prev => ({ ...prev, details: { ...prev.details, placeOfService: data.placeOfService } }));
         break;
       case 'duration':
-        setContract(prev => ({ ...prev.details, startDate: data.startDate, endDate: data.endDate } }));
+        setContract(prev => ({ ...prev, details: { ...prev.details, startDate: data.startDate, endDate: data.endDate } }));
         break;
       case 'rate':
-        setContract(prev => ({ ...prev.details, rate: data.rate } }));
+        setContract(prev => ({ ...prev, details: { ...prev.details, rate: data.rate } }));
         break;
     }
 
@@ -503,34 +363,50 @@ const Index = () => {
       setActiveTab('signature');
       return;
     }
-
-    const updatedPayment = { ...contract.payment! };
     
+    if (!contract.payment?.selectedPaymentType) {
+      toast({
+        title: "Payment Method Required",
+        description: "Please select a payment method before sending for review.",
+        variant: "destructive"
+      });
+      setActiveTab('payments');
+      return;
+    }
+
+    if (useAlternativeDesign) {
+      setIsReviewModalOpen(true);
+    } else {
+      setIsReviewPanelOpen(true);
+    }
+  };
+
+  const handleReviewComplete = (data: any) => {
+    const updatedPayment = { ...contract.payment! };
+    updatedPayment.selectedPaymentType = data.paymentType;
+    updatedPayment.selectedPaymentFrequency = data.paymentType === 'partial' ? data.selectedInterval : undefined;
+
     setContract({
       ...contract,
-      status: 'pending_review' as const,
+      status: 'pending_review',
       progress: 40,
       payment: updatedPayment
     });
     
-    const historyItem: ContractHistoryItem = {
-      id: `history-${Date.now()}`,
-      date: new Date().toISOString(),
-      action: 'Contract Sent for Review',
-      user: contract.from.name,
-    };
+    const updatedSteps = contractSteps.map(step => {
+      if (step.id === 1) return { ...step, status: 'completed' as const };
+      if (step.id === 2) return { ...step, status: 'current' as const };
+      return step;
+    });
+    setContractSteps(updatedSteps);
     
-    setContract(prev => ({
-      ...prev,
-      history: [...(prev.history || []), historyItem]
-    }));
+    setIsReviewPanelOpen(false);
+    setIsReviewModalOpen(false);
     
     toast({
       title: "Contract Sent for Review",
-      description: `Your contract has been sent to ${contract.to.name} for review.`,
+      description: `Payment of $${data.totalAmount.toFixed(2)} has been processed successfully.`,
     });
-    
-    updateStepperStatus();
   };
 
   const handleStartContract = () => {
@@ -540,7 +416,7 @@ const Index = () => {
     
     setContract(prev => ({
       ...prev,
-      status: 'in_progress' as const,
+      status: 'in_progress',
       progress: 75
     }));
     
@@ -559,90 +435,6 @@ const Index = () => {
     toast({
       title: "Contract Started",
       description: "The contract has been marked as In Progress.",
-    });
-    
-    updateStepperStatus();
-  };
-
-  const handleCompleteContract = () => {
-    if (isFromUser) {
-      if (contract.status !== 'pending_completion') {
-        toast({
-          title: "Action Not Allowed",
-          description: "You can only complete the contract when it's in pending completion state.",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      const selectedInterval = getPaymentIntervalDetails(contract.payment?.selectedPaymentFrequency);
-      if (selectedInterval) {
-        const unpaidTranches = selectedInterval.Tranches.filter(t => t.Status !== 'paid');
-        if (unpaidTranches.length > 0) {
-          toast({
-            title: "Payments Required",
-            description: "All payments must be completed before finalizing the contract.",
-            variant: "destructive"
-          });
-          setActiveTab('payments');
-          return;
-        }
-      }
-      
-      setIsFeedbackModalOpen(true);
-    } else {
-      if (contract.status !== 'in_progress') {
-        toast({
-          title: "Action Not Allowed",
-          description: "You can only request completion when the contract is in progress.",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      setIsFeedbackModalOpen(true);
-    }
-  };
-
-  const handleSubmitFeedback = () => {
-    setContract(prev => ({
-      ...prev,
-      [isFromUser ? 'from' : 'to']: {
-        ...prev[isFromUser ? 'from' : 'to'],
-        feedback: {
-          rating: feedbackRating,
-          comment: feedbackComment
-        }
-      }
-    }));
-    
-    const historyItem: ContractHistoryItem = {
-      id: `history-${Date.now()}`,
-      date: new Date().toISOString(),
-      action: isFromUser ? 'Contract Completed' : 'Contract Completion Requested',
-      user: isFromUser ? contract.from.name : contract.to.name,
-      notes: `Feedback: ${feedbackRating}/5. ${feedbackComment}`
-    };
-    
-    let newStatus = isFromUser ? 'completed' as const : 'pending_completion' as const;
-    let newProgress = isFromUser ? 100 : 90;
-    
-    setContract(prev => ({
-      ...prev,
-      status: newStatus,
-      progress: newProgress,
-      history: [...(prev.history || []), historyItem]
-    }));
-    
-    setIsFeedbackModalOpen(false);
-    setFeedbackRating(5);
-    setFeedbackComment('');
-    
-    toast({
-      title: isFromUser ? "Contract Completed" : "Completion Requested",
-      description: isFromUser 
-        ? "The contract has been marked as completed. Thank you for your feedback!" 
-        : "Your completion request has been sent for approval.",
     });
     
     updateStepperStatus();
@@ -667,30 +459,9 @@ const Index = () => {
       return;
     }
     
-    let selectedInterval: PaymentInterval | undefined;
-    
-    if (selectedPaymentType === 'one-time') {
-      selectedInterval = activePaymentIntervals[0];
-    } else if (selectedPaymentFrequency) {
-      selectedInterval = activePaymentIntervals.find(
-        interval => interval.PaymentFrequency === selectedPaymentFrequency
-      );
-    }
-    
-    if (!selectedInterval) {
-      toast({
-        title: "Error",
-        description: "Could not find the selected payment schedule.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
     const updatedPayment = { ...contract.payment! };
     updatedPayment.selectedPaymentType = selectedPaymentType;
-    updatedPayment.selectedPaymentFrequency = selectedPaymentType === 'partial' ? selectedPaymentFrequency : 'Monthly';
-    
-    updatedPayment.PaymentPlans[0].PaymentIntervals = activePaymentIntervals;
+    updatedPayment.selectedPaymentFrequency = selectedPaymentType === 'partial' ? selectedPaymentFrequency : undefined;
     
     setContract(prev => ({
       ...prev,
@@ -718,27 +489,21 @@ const Index = () => {
     });
   };
 
+  const toggleDesign = () => {
+    setUseAlternativeDesign(prev => !prev);
+  };
+
   const getPaymentIntervalDetails = (frequency?: string) => {
     if (!frequency || !contract.payment) return null;
     
-    let interval: PaymentInterval | undefined;
+    const paymentInterval = contract.payment.PaymentPlans[0].PaymentIntervals.find(
+      interval => interval.PaymentFrequency === frequency
+    );
     
-    if (contract.payment.selectedPaymentType === 'one-time') {
-      interval = activePaymentIntervals[0];
-    } else {
-      interval = activePaymentIntervals.find(
-        interval => interval.PaymentFrequency === frequency
-      );
-    }
-    
-    return interval;
+    return paymentInterval;
   };
 
-  const selectedPaymentInterval = getPaymentIntervalDetails(
-    contract.payment?.selectedPaymentType === 'one-time' 
-      ? 'Monthly' 
-      : contract.payment?.selectedPaymentFrequency
-  );
+  const selectedPaymentInterval = getPaymentIntervalDetails(contract.payment?.selectedPaymentFrequency);
 
   const handleRequestPayment = (trancheIndex: number) => {
     if (!selectedPaymentInterval) return;
@@ -756,19 +521,6 @@ const Index = () => {
     updatedContract.payment.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[trancheIndex].RequestDate = new Date().toISOString();
     
     setContract(updatedContract);
-    
-    const historyItem: ContractHistoryItem = {
-      id: `history-${Date.now()}`,
-      date: new Date().toISOString(),
-      action: 'Payment Requested',
-      user: contract.to.name,
-      notes: `Payment of ${updatedContract.payment.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[trancheIndex].Amount.CurrencyCode} ${updatedContract.payment.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[trancheIndex].Amount.Value.toFixed(2)} requested.`
-    };
-    
-    setContract(prev => ({
-      ...prev,
-      history: [...(prev.history || []), historyItem]
-    }));
     
     toast({
       title: "Payment Requested",
@@ -793,19 +545,6 @@ const Index = () => {
     
     setContract(updatedContract);
     
-    const historyItem: ContractHistoryItem = {
-      id: `history-${Date.now()}`,
-      date: new Date().toISOString(),
-      action: 'Payment Completed',
-      user: contract.from.name,
-      notes: `Payment of ${updatedContract.payment.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[trancheIndex].Amount.CurrencyCode} ${updatedContract.payment.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[trancheIndex].Amount.Value.toFixed(2)} completed.`
-    };
-    
-    setContract(prev => ({
-      ...prev,
-      history: [...(prev.history || []), historyItem]
-    }));
-    
     toast({
       title: "Payment Successful",
       description: `Your payment has been processed successfully.`,
@@ -827,19 +566,6 @@ const Index = () => {
     updatedContract.payment.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[trancheIndex].Status = 'cancelled';
     
     setContract(updatedContract);
-    
-    const historyItem: ContractHistoryItem = {
-      id: `history-${Date.now()}`,
-      date: new Date().toISOString(),
-      action: 'Payment Cancelled',
-      user: contract.from.name,
-      notes: `Payment of ${updatedContract.payment.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[trancheIndex].Amount.CurrencyCode} ${updatedContract.payment.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[trancheIndex].Amount.Value.toFixed(2)} cancelled.`
-    };
-    
-    setContract(prev => ({
-      ...prev,
-      history: [...(prev.history || []), historyItem]
-    }));
     
     toast({
       title: "Payment Cancelled",
@@ -908,7 +634,7 @@ const Index = () => {
         newSteps[0].status = 'current';
         newSteps[0].description = 'Review contract details and sign';
         newSteps[0].actionIcon = contract.from.signature ? 
-          <Badge variant="outline" className={cn("bg-green-50 text-green-600 border-green-200")}>
+          <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
             <CheckCheck className="w-3 h-3 mr-1" /> Signed
           </Badge> :
           <div className="flex items-center text-xs text-blue-600">
@@ -931,21 +657,16 @@ const Index = () => {
         newSteps[1].status = 'completed';
         newSteps[2].status = 'current';
         newSteps[2].description = 'Contract is signed by both parties';
-        newSteps[2].actionIcon = isFromUser ?
+        newSteps[2].actionIcon = 
           <div className="flex items-center text-xs text-blue-600">
             <PlayCircle className="w-3 h-3 mr-1" /> Start Contract
-          </div> : undefined;
+          </div>;
         break;
       case 'in_progress':
         newSteps[0].status = 'completed';
         newSteps[1].status = 'completed';
         newSteps[2].status = 'completed';
         newSteps[3].status = 'current';
-        newSteps[3].description = 'Contract is in progress';
-        newSteps[3].actionIcon = !isFromUser ?
-          <div className="flex items-center text-xs text-blue-600">
-            <CheckCircle2 className="w-3 h-3 mr-1" /> Request Completion
-          </div> : undefined;
         break;
       case 'pending_completion':
         newSteps[0].status = 'completed';
@@ -953,8 +674,358 @@ const Index = () => {
         newSteps[2].status = 'completed';
         newSteps[3].status = 'completed';
         newSteps[4].status = 'current';
-        newSteps[4].description = isFromUser ? 
-          'Approve completion and leave feedback' : 
-          'Waiting for approval';
-        newSteps[4].actionIcon = isFromUser ?
-          <div className="flex items-center text-
+        break;
+      case 'completed':
+        newSteps[0].status = 'completed';
+        newSteps[1].status = 'completed';
+        newSteps[2].status = 'completed';
+        newSteps[3].status = 'completed';
+        newSteps[4].status = 'completed';
+        newSteps[5].status = 'current';
+        break;
+    }
+    
+    setContractSteps(newSteps);
+  };
+
+  const isSendForReviewEnabled = () => {
+    if (isFromUser) {
+      return !!contract.from.signature && !!contract.payment?.selectedPaymentType;
+    }
+    return false;
+  };
+
+  const showStartContractButton = isFromUser && contract.status === 'active';
+
+  const isContractEditable = isFromUser && contract.status === 'draft';
+
+  useEffect(() => {
+    updateStepperStatus();
+  }, [contract.status]);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+        <div className="container flex justify-between items-center h-16 px-4 md:px-6">
+          <div className="flex items-center">
+            <a href="/" className="text-xl font-bold text-blue-600">
+              Eveniopro
+            </a>
+          </div>
+          
+          <div className="flex gap-4 items-center">
+            <a href="/offers" className="flex items-center px-3 py-1.5 text-sm">
+              Offers
+            </a>
+            <a href="/home" className="flex items-center px-3 py-1.5 text-sm">
+              Home
+            </a>
+            <a href="/dashboard" className="flex items-center px-3 py-1.5 text-sm">
+              Dashboard
+            </a>
+            <div className="ml-4 relative flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+                ST
+              </div>
+              <span className="text-sm">Sai Teja</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="container px-4 py-8 md:px-6">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-semibold">Contract</h1>
+            <Badge variant="outline" className="text-blue-800 bg-blue-50 border-blue-200">
+              {contract.status.replace('_', ' ').toUpperCase()}
+            </Badge>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            {contract.status === 'active' && isFromUser && (
+              <Button 
+                onClick={handleStartContract}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <PlayCircle className="w-4 h-4 mr-2" />
+                Start Contract
+              </Button>
+            )}
+            
+            <Button 
+              onClick={handleSendForReview}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={!(isFromUser && contract.status === 'draft')}
+            >
+              <Send className="w-4 h-4 mr-2" />
+              Send for Review
+            </Button>
+            
+            <Button
+              onClick={() => setIsFromUser(!isFromUser)}
+              variant="outline"
+              className="bg-green-50 text-green-600 border-green-200 hover:bg-green-100"
+            >
+              Switch to {isFromUser ? '"To" User View' : '"From" User View'}
+            </Button>
+            
+            <Button 
+              onClick={() => setUseAlternativeDesign(prev => !prev)}
+              variant="outline"
+              className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100"
+            >
+              Switch to {useAlternativeDesign ? 'Slide-in Panel' : 'Modal Dialog'}
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-12 gap-8">
+          <div className="col-span-3">
+            <div className="sticky top-24 bg-white rounded-lg shadow-soft border border-gray-100 p-8">
+              <ContractStepper steps={contractSteps} />
+            </div>
+          </div>
+
+          <div className="col-span-9">
+            {contract.status === 'draft' && isFromUser && (
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start mb-8 animate-fade-in">
+                <Info className="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
+                <div>
+                  <p className="text-blue-800 font-medium">Confirm the details, add your signature and send for review.</p>
+                  <p className="text-sm text-blue-600">
+                    Please review all contract details carefully before sending it for review.
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {contract.status === 'pending_review' && !isFromUser && (
+              <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 flex items-start mb-8 animate-fade-in">
+                <Info className="w-5 h-5 text-amber-500 mt-0.5 mr-3 flex-shrink-0" />
+                <div>
+                  <p className="text-amber-800 font-medium">Contract is pending your review.</p>
+                  <p className="text-sm text-amber-600">
+                    Please review the contract details and add your signature to activate the contract.
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {contract.status === 'active' && (
+              <div className="bg-green-50 border border-green-100 rounded-lg p-4 flex items-start mb-8 animate-fade-in">
+                <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+                <div>
+                  <p className="text-green-800 font-medium">Contract is active and ready to start.</p>
+                  <p className="text-sm text-green-600">
+                    Both parties have signed the contract. {isFromUser ? "You can now start the contract." : "Waiting for the contract to be started."}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-6">
+              <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="mb-4 grid grid-cols-6 gap-2 bg-gray-100 p-1">
+                  <TabsTrigger value="overview">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Overview
+                  </TabsTrigger>
+                  <TabsTrigger value="payments">
+                    <DollarSign className="w-4 h-4 mr-2" />
+                    Payments
+                  </TabsTrigger>
+                  <TabsTrigger value="signature">
+                    <Edit className="w-4 h-4 mr-2" />
+                    Signature
+                  </TabsTrigger>
+                  <TabsTrigger value="files">
+                    <Paperclip className="w-4 h-4 mr-2" />
+                    Files
+                  </TabsTrigger>
+                  <TabsTrigger value="chat">
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Chat
+                  </TabsTrigger>
+                  <TabsTrigger value="history">
+                    <History className="w-4 h-4 mr-2" />
+                    History
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="overview" className="space-y-6 animate-fade-in">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-lg font-medium">Contract Overview</CardTitle>
+                      <CheckCircle2 className="h-5 w-5 text-green-500" />
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <ContractSummary 
+                        contract={contract}
+                        onEdit={isContractEditable ? handleEdit : undefined}
+                      />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                
+                <TabsContent value="payments" className="space-y-6 animate-fade-in">
+                  {(contract.status === 'draft' && isFromUser) && (
+                    <Card className="mb-6">
+                      <CardHeader>
+                        <CardTitle>Payment Method</CardTitle>
+                        <CardDescription>Select how you would like to pay for this contract</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        <div className="space-y-4">
+                          <Label>Payment Type</Label>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div 
+                              className={`p-4 border rounded-lg cursor-pointer ${selectedPaymentType === 'one-time' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                              onClick={() => setSelectedPaymentType('one-time')}
+                            >
+                              <div className="flex items-center">
+                                <div className={`w-4 h-4 rounded-full border-2 ${selectedPaymentType === 'one-time' ? 'border-blue-500' : 'border-gray-300'} flex items-center justify-center`}>
+                                  {selectedPaymentType === 'one-time' && (
+                                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                  )}
+                                </div>
+                                <span className="ml-2 font-medium">One-time Payment</span>
+                              </div>
+                              <p className="text-sm text-gray-500 mt-2">Pay the full amount at once</p>
+                            </div>
+                            
+                            <div 
+                              className={`p-4 border rounded-lg cursor-pointer ${selectedPaymentType === 'partial' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                              onClick={() => setSelectedPaymentType('partial')}
+                            >
+                              <div className="flex items-center">
+                                <div className={`w-4 h-4 rounded-full border-2 ${selectedPaymentType === 'partial' ? 'border-blue-500' : 'border-gray-300'} flex items-center justify-center`}>
+                                  {selectedPaymentType === 'partial' && (
+                                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                  )}
+                                </div>
+                                <span className="ml-2 font-medium">Partial Payments</span>
+                              </div>
+                              <p className="text-sm text-gray-500 mt-2">Split your payments over time</p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {selectedPaymentType === 'partial' && (
+                          <div className="space-y-4 animate-in fade-in-50 slide-in-from-top-5 duration-200">
+                            <Label>Payment Frequency</Label>
+                            <Select
+                              value={selectedPaymentFrequency}
+                              onValueChange={(value) => setSelectedPaymentFrequency(value as any)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select payment frequency" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Monthly">Monthly</SelectItem>
+                                <SelectItem value="Weekly">Weekly</SelectItem>
+                                <SelectItem value="Daily">Daily</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+                        
+                        <Button onClick={handleSavePaymentMethod} className="w-full">
+                          Save Payment Method
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  <PaymentPlanDisplay 
+                    paymentType={contract.payment?.selectedPaymentType}
+                    paymentFrequency={contract.payment?.selectedPaymentFrequency}
+                    interval={getPaymentIntervalDetails(contract.payment?.selectedPaymentFrequency)}
+                    isFromUser={isFromUser}
+                    onRequestPayment={handleRequestPayment}
+                    onApprovePayment={handleApprovePayment}
+                    onCancelPayment={handleCancelPayment}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="signature" className="space-y-6 animate-fade-in">
+                  <SignatureTab
+                    contract={contract}
+                    isFromUser={isFromUser}
+                    onSign={handleSign}
+                    isDisabled={!isFromUser && contract.status !== 'pending_review'}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="files" className="space-y-6 animate-fade-in">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Contract Files</CardTitle>
+                      <CardDescription>View and manage contract documents</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-8 border border-dashed rounded-lg">
+                        <Paperclip className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-gray-500">Drag and drop files here or click to browse</p>
+                        <Button variant="outline" className="mt-4">Add Files</Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                
+                <TabsContent value="chat" className="space-y-6 animate-fade-in">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Contract Discussion</CardTitle>
+                      <CardDescription>Chat with other parties involved in this contract</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[400px] flex items-center justify-center border-2 border-dashed rounded-lg">
+                        <p className="text-gray-500">Chat feature coming soon</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                
+                <TabsContent value="history" className="space-y-6 animate-fade-in">
+                  <HistoryTab history={contract.history} />
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
+        </div>
+      </main>
+      
+      <ReviewPanel 
+        isOpen={!useAlternativeDesign && isReviewPanelOpen}
+        onClose={() => setIsReviewPanelOpen(false)}
+        onComplete={handleReviewComplete}
+        contractData={{
+          fromName: contract.from.name,
+          toName: contract.to.name,
+          rate: contract.details.rate,
+        }}
+      />
+      
+      <ReviewModal
+        isOpen={useAlternativeDesign && isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        onComplete={handleReviewComplete}
+        contractData={{
+          fromName: contract.from.name,
+          toName: contract.to.name,
+          rate: contract.details.rate,
+        }}
+      />
+      
+      <EditContractModal
+        isOpen={editModal.isOpen}
+        onClose={() => setEditModal(prev => ({ ...prev, isOpen: false }))}
+        onSave={handleSaveEdit}
+        section={editModal.section}
+      />
+    </div>
+  );
+};
+
+export default Index;
