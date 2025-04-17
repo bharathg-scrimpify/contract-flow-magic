@@ -3,13 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, CheckCircle, DollarSign, Calendar, ArrowRight, ArrowLeft } from 'lucide-react';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
-import PaymentSchedule from './PaymentSchedule';
-import { PaymentInterval } from '@/types/contract';
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -22,148 +17,34 @@ interface ReviewModalProps {
   };
 }
 
-// Mock payment plan data based on the provided JSON structure
-const mockPaymentPlans = {
-  NeedPayableAmount: {
-    CurrencyCode: "USD",
-    Value: 1000.00
-  },
-  OfferReceivableAmount: {
-    CurrencyCode: "USD",
-    Value: 950.00
-  },
-  PlatformFee: {
-    FromNeed: {
-      CurrencyCode: "USD",
-      Value: 50.00
-    },
-    FromOffer: {
-      CurrencyCode: "USD",
-      Value: 25.00
-    }
-  },
-  PaymentPlans: [
-    {
-      PaymentOption: "Full",
-      PaymentIntervals: [
-        {
-          PaymentFrequency: "Monthly",
-          Tranches: [
-            {
-              DueDate: "2025-04-01T00:00:00Z",
-              Amount: {
-                CurrencyCode: "USD",
-                Value: 500.00
-              }
-            },
-            {
-              DueDate: "2025-05-01T00:00:00Z",
-              Amount: {
-                CurrencyCode: "USD",
-                Value: 500.00
-              }
-            }
-          ]
-        },
-        {
-          PaymentFrequency: "Weekly",
-          Tranches: [
-            {
-              DueDate: "2025-04-07T00:00:00Z",
-              Amount: {
-                CurrencyCode: "USD",
-                Value: 250.00
-              }
-            },
-            {
-              DueDate: "2025-04-14T00:00:00Z",
-              Amount: {
-                CurrencyCode: "USD",
-                Value: 250.00
-              }
-            },
-            {
-              DueDate: "2025-04-21T00:00:00Z",
-              Amount: {
-                CurrencyCode: "USD",
-                Value: 250.00
-              }
-            },
-            {
-              DueDate: "2025-04-28T00:00:00Z",
-              Amount: {
-                CurrencyCode: "USD",
-                Value: 250.00
-              }
-            }
-          ]
-        },
-        {
-          PaymentFrequency: "Daily",
-          Tranches: [
-            {
-              DueDate: "2025-04-01T00:00:00Z",
-              Amount: {
-                CurrencyCode: "USD",
-                Value: 50.00
-              }
-            },
-            {
-              DueDate: "2025-04-02T00:00:00Z",
-              Amount: {
-                CurrencyCode: "USD",
-                Value: 50.00
-              }
-            },
-            {
-              DueDate: "2025-04-03T00:00:00Z",
-              Amount: {
-                CurrencyCode: "USD",
-                Value: 50.00
-              }
-            }
-          ]
-        }
-      ]
-    }
-  ]
-};
-
 const ReviewModal = ({ isOpen, onClose, onComplete, contractData }: ReviewModalProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [subscriptionActive, setSubscriptionActive] = useState(true);
   const [balanceStatus, setBalanceStatus] = useState<'sufficient' | 'insufficient'>('sufficient');
-  const [paymentType, setPaymentType] = useState<'one-time' | 'partial'>('one-time');
-  const [selectedInterval, setSelectedInterval] = useState<string>('');
-  const [autoPayDate, setAutoPayDate] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   
   // Calculate fee breakdown
-  const { NeedPayableAmount, OfferReceivableAmount, PlatformFee } = mockPaymentPlans;
-  const totalAmount = NeedPayableAmount.Value;
-  const platformFee = PlatformFee.FromNeed.Value;
-  const receiverAmount = OfferReceivableAmount.Value;
+  const totalAmount = 1000.00;
+  const platformFee = 50.00;
+  const receiverAmount = 950.00;
   
   // Reset steps when modal opens
   useEffect(() => {
     if (isOpen) {
       setCurrentStep(1);
       setShowSuccess(false);
-      setPaymentType('one-time');
-      setSelectedInterval('');
     }
   }, [isOpen]);
 
-  // Total number of steps
-  const totalSteps = 4;
+  // Total number of steps (reduced by 1 - removed payment method step)
+  const totalSteps = 3;
 
   // Step titles
   const stepTitles = [
     "Subscription Status",
     "Account Balance",
-    "Billing Summary",
-    "Payment Method"
+    "Billing Summary"
   ];
 
   // Handle step transitions
@@ -194,8 +75,6 @@ const ReviewModal = ({ isOpen, onClose, onComplete, contractData }: ReviewModalP
       // After showing success message, complete the flow
       setTimeout(() => {
         onComplete({
-          paymentType,
-          selectedInterval: paymentType === 'partial' ? selectedInterval : null,
           totalAmount,
           platformFee,
           receiverAmount
@@ -203,9 +82,6 @@ const ReviewModal = ({ isOpen, onClose, onComplete, contractData }: ReviewModalP
       }, 2000);
     }, 1500);
   };
-
-  // Get the payment intervals from our mock data
-  const paymentIntervals = mockPaymentPlans.PaymentPlans[0].PaymentIntervals;
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
@@ -331,85 +207,6 @@ const ReviewModal = ({ isOpen, onClose, onComplete, contractData }: ReviewModalP
                   </div>
                 </div>
               )}
-              
-              {/* Step 4: Payment Type */}
-              {currentStep === 4 && (
-                <div className="space-y-5">
-                  <div className="grid gap-4">
-                    <RadioGroup 
-                      value={paymentType} 
-                      onValueChange={(val) => {
-                        setPaymentType(val as 'one-time' | 'partial');
-                        if (val === 'one-time') {
-                          setSelectedInterval('');
-                        }
-                      }}
-                      className="space-y-3"
-                    >
-                      <div className={cn(
-                        "flex items-center space-x-2 border rounded-lg p-4 cursor-pointer transition-all duration-200",
-                        paymentType === 'one-time' 
-                          ? "border-blue-300 bg-blue-50 shadow-sm" 
-                          : "border-gray-200 hover:border-blue-200"
-                      )}>
-                        <RadioGroupItem value="one-time" id="one-time" />
-                        <Label htmlFor="one-time" className="flex items-center justify-between w-full cursor-pointer">
-                          <div>
-                            <div className="font-medium">One-time Payment</div>
-                            <div className="text-sm text-gray-500">Pay the full amount now</div>
-                          </div>
-                          <DollarSign className={cn(
-                            "h-5 w-5 transition-colors", 
-                            paymentType === 'one-time' ? "text-blue-500" : "text-gray-400"
-                          )} />
-                        </Label>
-                      </div>
-                      
-                      <div className={cn(
-                        "flex items-center space-x-2 border rounded-lg p-4 cursor-pointer transition-all duration-200",
-                        paymentType === 'partial' 
-                          ? "border-blue-300 bg-blue-50 shadow-sm" 
-                          : "border-gray-200 hover:border-blue-200"
-                      )}>
-                        <RadioGroupItem value="partial" id="partial" />
-                        <Label htmlFor="partial" className="flex items-center justify-between w-full cursor-pointer">
-                          <div>
-                            <div className="font-medium">Partial Payment</div>
-                            <div className="text-sm text-gray-500">Split your payments over time</div>
-                          </div>
-                          <Calendar className={cn(
-                            "h-5 w-5 transition-colors", 
-                            paymentType === 'partial' ? "text-blue-500" : "text-gray-400"
-                          )} />
-                        </Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                  
-                  {paymentType === 'partial' && (
-                    <div className="pt-2 animate-fade-in space-y-4">
-                      <h4 className="font-medium text-gray-700">Choose a payment schedule</h4>
-                      
-                      <div className="space-y-4 mt-2">
-                        {paymentIntervals.map((interval: PaymentInterval, index: number) => (
-                          <PaymentSchedule
-                            key={index}
-                            interval={interval}
-                            selected={selectedInterval === interval.PaymentFrequency}
-                            onSelect={() => setSelectedInterval(interval.PaymentFrequency)}
-                          />
-                        ))}
-                      </div>
-                      
-                      {!selectedInterval && (
-                        <div className="text-sm text-amber-600 mt-2">
-                          Please select a payment schedule to continue
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           )}
         </div>
@@ -427,10 +224,7 @@ const ReviewModal = ({ isOpen, onClose, onComplete, contractData }: ReviewModalP
             
             <Button 
               onClick={nextStep}
-              disabled={
-                isSubmitting || 
-                (currentStep === 4 && paymentType === 'partial' && !selectedInterval)
-              }
+              disabled={isSubmitting}
               className={`${isSubmitting ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
             >
               {isSubmitting ? (
