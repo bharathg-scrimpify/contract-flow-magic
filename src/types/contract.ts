@@ -5,6 +5,10 @@ export interface ContractParty {
   organization?: string;
   address?: string;
   signature?: string;
+  feedback?: {
+    rating: number;
+    comment: string;
+  };
 }
 
 export interface ContractDetails {
