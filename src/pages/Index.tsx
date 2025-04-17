@@ -1,13 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import ContractStepper, { Step } from '@/components/contract/ContractStepper';
 import ContractSummary from '@/components/contract/ContractSummary';
 import ReviewPanel from '@/components/contract/ReviewPanel';
-import ReviewModal from '@/components/contract/ReviewModal';
 import PaymentPlanDisplay from '@/components/contract/PaymentPlanDisplay';
 import EditContractModal from '@/components/contract/EditContractModal';
 import SignatureTab from '@/components/contract/SignatureTab';
 import HistoryTab from '@/components/contract/HistoryTab';
+import { cn } from '@/lib/utils';
 import { 
   Info, 
   Edit, 
@@ -43,8 +44,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 const Index = () => {
   const { toast } = useToast();
   const [isReviewPanelOpen, setIsReviewPanelOpen] = useState(false);
-  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [useAlternativeDesign, setUseAlternativeDesign] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [isFromUser, setIsFromUser] = useState(true);
   const [selectedPaymentType, setSelectedPaymentType] = useState<'one-time' | 'partial' | undefined>(undefined);
@@ -98,6 +97,95 @@ const Index = () => {
     },
   ]);
   
+  // Function to generate payment data based on selected frequency
+  const generatePaymentData = (frequency: 'Monthly' | 'Weekly' | 'Daily'): PaymentInterval => {
+    let tranches: PaymentTranche[] = [];
+    const totalAmount = 1000.00;
+    let amount: number;
+    let dueDate: string;
+    
+    if (frequency === 'Monthly') {
+      amount = totalAmount / 2;
+      tranches = [
+        {
+          DueDate: "2025-04-01T00:00:00Z",
+          Amount: {
+            CurrencyCode: "USD",
+            Value: amount
+          },
+          Status: "not_paid" as const
+        },
+        {
+          DueDate: "2025-05-01T00:00:00Z",
+          Amount: {
+            CurrencyCode: "USD",
+            Value: amount
+          },
+          Status: "not_paid" as const
+        }
+      ];
+    } else if (frequency === 'Weekly') {
+      amount = totalAmount / 4;
+      tranches = [
+        {
+          DueDate: "2025-04-07T00:00:00Z",
+          Amount: {
+            CurrencyCode: "USD",
+            Value: amount
+          },
+          Status: "not_paid" as const
+        },
+        {
+          DueDate: "2025-04-14T00:00:00Z",
+          Amount: {
+            CurrencyCode: "USD",
+            Value: amount
+          },
+          Status: "not_paid" as const
+        },
+        {
+          DueDate: "2025-04-21T00:00:00Z",
+          Amount: {
+            CurrencyCode: "USD",
+            Value: amount
+          },
+          Status: "not_paid" as const
+        },
+        {
+          DueDate: "2025-04-28T00:00:00Z",
+          Amount: {
+            CurrencyCode: "USD",
+            Value: amount
+          },
+          Status: "not_paid" as const
+        }
+      ];
+    } else if (frequency === 'Daily') {
+      amount = totalAmount / 20; // Assuming 20 business days
+      tranches = [];
+      
+      // Generate 20 daily payments
+      for (let i = 1; i <= 20; i++) {
+        const day = i < 10 ? `0${i}` : `${i}`;
+        dueDate = `2025-04-${day}T00:00:00Z`;
+        
+        tranches.push({
+          DueDate: dueDate,
+          Amount: {
+            CurrencyCode: "USD",
+            Value: amount
+          },
+          Status: "not_paid" as const
+        });
+      }
+    }
+    
+    return {
+      PaymentFrequency: frequency,
+      Tranches: tranches
+    };
+  };
+
   const mockPaymentPlans = {
     NeedPayableAmount: {
       CurrencyCode: "USD",
@@ -121,93 +209,9 @@ const Index = () => {
       {
         PaymentOption: "Full" as const,
         PaymentIntervals: [
-          {
-            PaymentFrequency: "Monthly" as const,
-            Tranches: [
-              {
-                DueDate: "2025-04-01T00:00:00Z",
-                Amount: {
-                  CurrencyCode: "USD",
-                  Value: 500.00
-                },
-                Status: "not_paid" as const
-              },
-              {
-                DueDate: "2025-05-01T00:00:00Z",
-                Amount: {
-                  CurrencyCode: "USD",
-                  Value: 500.00
-                },
-                Status: "not_paid" as const
-              }
-            ]
-          },
-          {
-            PaymentFrequency: "Weekly" as const,
-            Tranches: [
-              {
-                DueDate: "2025-04-07T00:00:00Z",
-                Amount: {
-                  CurrencyCode: "USD",
-                  Value: 250.00
-                },
-                Status: "not_paid" as const
-              },
-              {
-                DueDate: "2025-04-14T00:00:00Z",
-                Amount: {
-                  CurrencyCode: "USD",
-                  Value: 250.00
-                },
-                Status: "not_paid" as const
-              },
-              {
-                DueDate: "2025-04-21T00:00:00Z",
-                Amount: {
-                  CurrencyCode: "USD",
-                  Value: 250.00
-                },
-                Status: "not_paid" as const
-              },
-              {
-                DueDate: "2025-04-28T00:00:00Z",
-                Amount: {
-                  CurrencyCode: "USD",
-                  Value: 250.00
-                },
-                Status: "not_paid" as const
-              }
-            ]
-          },
-          {
-            PaymentFrequency: "Daily" as const,
-            Tranches: [
-              {
-                DueDate: "2025-04-01T00:00:00Z",
-                Amount: {
-                  CurrencyCode: "USD",
-                  Value: 50.00
-                },
-                Status: "not_paid" as const
-              },
-              {
-                DueDate: "2025-04-02T00:00:00Z",
-                Amount: {
-                  CurrencyCode: "USD",
-                  Value: 50.00
-                },
-                Status: "not_paid" as const
-              },
-              {
-                DueDate: "2025-04-03T00:00:00Z",
-                Amount: {
-                  CurrencyCode: "USD",
-                  Value: 50.00
-                },
-                Status: "not_paid" as const
-              }
-            ]
-          }
+          generatePaymentData('Monthly'),
+          generatePaymentData('Weekly'),
+          generatePaymentData('Daily')
         ]
       }
     ]
@@ -364,28 +368,8 @@ const Index = () => {
       return;
     }
     
-    if (!contract.payment?.selectedPaymentType) {
-      toast({
-        title: "Payment Method Required",
-        description: "Please select a payment method before sending for review.",
-        variant: "destructive"
-      });
-      setActiveTab('payments');
-      return;
-    }
-
-    if (useAlternativeDesign) {
-      setIsReviewModalOpen(true);
-    } else {
-      setIsReviewPanelOpen(true);
-    }
-  };
-
-  const handleReviewComplete = (data: any) => {
     const updatedPayment = { ...contract.payment! };
-    updatedPayment.selectedPaymentType = data.paymentType;
-    updatedPayment.selectedPaymentFrequency = data.paymentType === 'partial' ? data.selectedInterval : undefined;
-
+    
     setContract({
       ...contract,
       status: 'pending_review',
@@ -398,15 +382,17 @@ const Index = () => {
       if (step.id === 2) return { ...step, status: 'current' as const };
       return step;
     });
+    
     setContractSteps(updatedSteps);
     
     setIsReviewPanelOpen(false);
-    setIsReviewModalOpen(false);
     
     toast({
       title: "Contract Sent for Review",
-      description: `Payment of $${data.totalAmount.toFixed(2)} has been processed successfully.`,
+      description: `Your contract has been sent to ${contract.to.name} for review.`,
     });
+    
+    updateStepperStatus();
   };
 
   const handleStartContract = () => {
@@ -459,9 +445,27 @@ const Index = () => {
       return;
     }
     
+    // Create a deep copy of the payment object
     const updatedPayment = { ...contract.payment! };
     updatedPayment.selectedPaymentType = selectedPaymentType;
     updatedPayment.selectedPaymentFrequency = selectedPaymentType === 'partial' ? selectedPaymentFrequency : undefined;
+    
+    // If payment type is changed, update the payment plan
+    if (selectedPaymentType === 'partial' && selectedPaymentFrequency) {
+      // Generate a fresh payment interval based on the selected frequency
+      const newPaymentInterval = generatePaymentData(selectedPaymentFrequency);
+      
+      // Replace the payment interval in the payment plans
+      const existingIntervals = [...updatedPayment.PaymentPlans[0].PaymentIntervals];
+      const indexToReplace = existingIntervals.findIndex(interval => 
+        interval.PaymentFrequency === selectedPaymentFrequency);
+      
+      if (indexToReplace !== -1) {
+        existingIntervals[indexToReplace] = newPaymentInterval;
+      }
+      
+      updatedPayment.PaymentPlans[0].PaymentIntervals = existingIntervals;
+    }
     
     setContract(prev => ({
       ...prev,
@@ -487,10 +491,6 @@ const Index = () => {
       title: "Downloading PDF",
       description: "Your contract PDF is being downloaded.",
     });
-  };
-
-  const toggleDesign = () => {
-    setUseAlternativeDesign(prev => !prev);
   };
 
   const getPaymentIntervalDetails = (frequency?: string) => {
@@ -634,7 +634,7 @@ const Index = () => {
         newSteps[0].status = 'current';
         newSteps[0].description = 'Review contract details and sign';
         newSteps[0].actionIcon = contract.from.signature ? 
-          <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
+          <Badge variant="outline" className={cn("bg-green-50 text-green-600 border-green-200")}>
             <CheckCheck className="w-3 h-3 mr-1" /> Signed
           </Badge> :
           <div className="flex items-center text-xs text-blue-600">
@@ -690,7 +690,7 @@ const Index = () => {
 
   const isSendForReviewEnabled = () => {
     if (isFromUser) {
-      return !!contract.from.signature && !!contract.payment?.selectedPaymentType;
+      return !!contract.from.signature;
     }
     return false;
   };
@@ -768,14 +768,6 @@ const Index = () => {
               className="bg-green-50 text-green-600 border-green-200 hover:bg-green-100"
             >
               Switch to {isFromUser ? '"To" User View' : '"From" User View'}
-            </Button>
-            
-            <Button 
-              onClick={() => setUseAlternativeDesign(prev => !prev)}
-              variant="outline"
-              className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100"
-            >
-              Switch to {useAlternativeDesign ? 'Slide-in Panel' : 'Modal Dialog'}
             </Button>
           </div>
         </div>
@@ -880,11 +872,17 @@ const Index = () => {
                           <Label>Payment Type</Label>
                           <div className="grid grid-cols-2 gap-4">
                             <div 
-                              className={`p-4 border rounded-lg cursor-pointer ${selectedPaymentType === 'one-time' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                              className={cn(
+                                "p-4 border rounded-lg cursor-pointer",
+                                selectedPaymentType === 'one-time' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                              )}
                               onClick={() => setSelectedPaymentType('one-time')}
                             >
                               <div className="flex items-center">
-                                <div className={`w-4 h-4 rounded-full border-2 ${selectedPaymentType === 'one-time' ? 'border-blue-500' : 'border-gray-300'} flex items-center justify-center`}>
+                                <div className={cn(
+                                  "w-4 h-4 rounded-full border-2 flex items-center justify-center",
+                                  selectedPaymentType === 'one-time' ? 'border-blue-500' : 'border-gray-300'
+                                )}>
                                   {selectedPaymentType === 'one-time' && (
                                     <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                                   )}
@@ -895,11 +893,17 @@ const Index = () => {
                             </div>
                             
                             <div 
-                              className={`p-4 border rounded-lg cursor-pointer ${selectedPaymentType === 'partial' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                              className={cn(
+                                "p-4 border rounded-lg cursor-pointer",
+                                selectedPaymentType === 'partial' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                              )}
                               onClick={() => setSelectedPaymentType('partial')}
                             >
                               <div className="flex items-center">
-                                <div className={`w-4 h-4 rounded-full border-2 ${selectedPaymentType === 'partial' ? 'border-blue-500' : 'border-gray-300'} flex items-center justify-center`}>
+                                <div className={cn(
+                                  "w-4 h-4 rounded-full border-2 flex items-center justify-center",
+                                  selectedPaymentType === 'partial' ? 'border-blue-500' : 'border-gray-300'
+                                )}>
                                   {selectedPaymentType === 'partial' && (
                                     <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                                   )}
@@ -916,7 +920,7 @@ const Index = () => {
                             <Label>Payment Frequency</Label>
                             <Select
                               value={selectedPaymentFrequency}
-                              onValueChange={(value) => setSelectedPaymentFrequency(value as any)}
+                              onValueChange={(value) => setSelectedPaymentFrequency(value as 'Monthly' | 'Weekly' | 'Daily')}
                             >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select payment frequency" />
@@ -997,20 +1001,9 @@ const Index = () => {
       </main>
       
       <ReviewPanel 
-        isOpen={!useAlternativeDesign && isReviewPanelOpen}
+        isOpen={isReviewPanelOpen}
         onClose={() => setIsReviewPanelOpen(false)}
-        onComplete={handleReviewComplete}
-        contractData={{
-          fromName: contract.from.name,
-          toName: contract.to.name,
-          rate: contract.details.rate,
-        }}
-      />
-      
-      <ReviewModal
-        isOpen={useAlternativeDesign && isReviewModalOpen}
-        onClose={() => setIsReviewModalOpen(false)}
-        onComplete={handleReviewComplete}
+        onComplete={handleSendForReview}
         contractData={{
           fromName: contract.from.name,
           toName: contract.to.name,
