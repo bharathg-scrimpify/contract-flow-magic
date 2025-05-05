@@ -201,7 +201,7 @@ const BrowsePage = () => {
   ]);
   
   const filteredListings = listings.filter(listing => 
-    listing.type === activeTab &&
+    (activeTab === 'needs' ? listing.type === 'need' : listing.type === 'offer') &&
     (searchTerm === '' ||
      listing.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
      listing.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -214,7 +214,10 @@ const BrowsePage = () => {
   };
   
   const handleViewListing = (id: string) => {
-    navigate(`/${activeTab === 'needs' ? 'needs' : 'offers'}/${id}`);
+    const listing = listings.find(item => item.id === id);
+    if (listing) {
+      navigate(`/${listing.type === 'need' ? 'needs' : 'offers'}/${id}`);
+    }
   };
   
   const categoryIcons: Record<CategoryType, React.ReactNode> = {

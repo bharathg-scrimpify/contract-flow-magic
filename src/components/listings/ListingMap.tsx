@@ -7,8 +7,6 @@ interface ListingMapProps {
   onMarkerClick: (id: string) => void;
 }
 
-// This is a placeholder for the actual map implementation
-// For a real application, you would integrate with a mapping service like Google Maps or Mapbox
 const ListingMap = ({ listings, onMarkerClick }: ListingMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [isMapReady, setIsMapReady] = useState(false);
