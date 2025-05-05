@@ -20,22 +20,54 @@ interface ContractStepperProps {
 
 const ContractStepper = ({ steps, className }: ContractStepperProps) => {
   // Get status-specific colors
-  const getStatusColors = (status: StepStatus) => {
+  const getStatusColors = (status: StepStatus, name?: string) => {
+    // Base colors for different steps
+    let stepSpecificColors = {
+      circle: "",
+      text: ""
+    };
+    
+    // Apply step-specific colors
+    if (name) {
+      const nameLower = name.toLowerCase();
+      
+      if (nameLower.includes('draft')) {
+        stepSpecificColors.circle = status === 'completed' ? "bg-orange-500 border-orange-500" : "border-orange-500 text-orange-500";
+        stepSpecificColors.text = "text-orange-600";
+      } 
+      else if (nameLower.includes('review')) {
+        stepSpecificColors.circle = status === 'completed' ? "bg-amber-500 border-amber-500" : "border-amber-500 text-amber-500";
+        stepSpecificColors.text = "text-amber-600";
+      }
+      else if (nameLower.includes('sign')) {
+        stepSpecificColors.circle = status === 'completed' ? "bg-purple-500 border-purple-500" : "border-purple-500 text-purple-500";
+        stepSpecificColors.text = "text-purple-600";
+      }
+      else if (nameLower.includes('progress') || nameLower.includes('start')) {
+        stepSpecificColors.circle = status === 'completed' ? "bg-blue-500 border-blue-500" : "border-blue-500 text-blue-500";
+        stepSpecificColors.text = "text-blue-600";
+      }
+      else if (nameLower.includes('complet')) {
+        stepSpecificColors.circle = status === 'completed' ? "bg-green-500 border-green-500" : "border-green-500 text-green-500";
+        stepSpecificColors.text = "text-green-600";
+      }
+    }
+    
     switch (status) {
       case 'completed':
         return {
-          circle: "bg-green-500 border-green-500 text-white",
+          circle: stepSpecificColors.circle || "bg-green-500 border-green-500 text-white",
           line: "bg-green-500",
           gradientLine: "bg-gradient-to-b from-green-500 to-gray-300",
-          text: "text-green-600 font-medium",
+          text: stepSpecificColors.text || "text-green-600 font-medium",
           description: "text-green-600"
         };
       case 'current':
         return {
-          circle: "bg-white border-blue-500 text-blue-500 ring-4 ring-blue-100",
+          circle: stepSpecificColors.circle || "bg-white border-blue-500 text-blue-500 ring-4 ring-blue-100",
           line: "bg-gray-300",
           gradientLine: "bg-gray-300",
-          text: "text-blue-600 font-semibold",
+          text: stepSpecificColors.text || "text-blue-600 font-semibold",
           description: "text-gray-700"
         };
       case 'upcoming':
@@ -54,7 +86,7 @@ const ContractStepper = ({ steps, className }: ContractStepperProps) => {
     <nav aria-label="Contract Progress" className={cn("h-full", className)}>
       <ol className="relative flex flex-col space-y-8">
         {steps.map((step, index) => {
-          const colors = getStatusColors(step.status);
+          const colors = getStatusColors(step.status, step.name);
           
           return (
             <li key={step.id} className="relative">
