@@ -13,7 +13,8 @@ import {
   User,
   LogOut,
   Menu,
-  X
+  X,
+  CalendarCheck
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -85,6 +86,15 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               >
                 <FileText className="mr-2 h-4 w-4" />
                 Contracts
+              </Button>
+            </Link>
+            <Link to="/attendance">
+              <Button 
+                variant={isActive('/attendance') ? "default" : "ghost"}
+                className={isActive('/attendance') ? "bg-purple-100 text-purple-800 hover:bg-purple-200" : ""}
+              >
+                <CalendarCheck className="mr-2 h-4 w-4" />
+                Attendance
               </Button>
             </Link>
             <Link to="/messages">
@@ -184,6 +194,15 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               >
                 <FileText className="mr-2 h-4 w-4" />
                 Contracts
+              </Button>
+            </Link>
+            <Link to="/attendance" onClick={() => setMobileMenuOpen(false)}>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start mb-2"
+              >
+                <CalendarCheck className="mr-2 h-4 w-4" />
+                Attendance
               </Button>
             </Link>
             <Link to="/messages" onClick={() => setMobileMenuOpen(false)}>
