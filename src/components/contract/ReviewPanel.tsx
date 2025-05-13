@@ -386,7 +386,7 @@ const ReviewPanel = ({ isOpen, onClose, onComplete, contractData }: ReviewPanelP
                         ))}
                       </div>
                       
-                      {!selectedInterval && (
+                      {!selectedInterval && paymentType === 'partial' && (
                         <div className="text-sm text-amber-600 mt-2">
                           Please select a payment schedule to continue
                         </div>

@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 interface PaymentPlanDisplayProps {
-  paymentType: 'one-time' | 'partial';
+  paymentType?: 'one-time' | 'partial';
   paymentFrequency?: 'Monthly' | 'Weekly' | 'Daily';
   interval?: PaymentInterval;
   isFromUser: boolean;
@@ -34,6 +34,23 @@ const PaymentPlanDisplay: React.FC<PaymentPlanDisplayProps> = ({
   onApprovePayment,
   onCancelPayment
 }) => {
+  // If no payment type selected yet, show a message
+  if (!paymentType) {
+    return (
+      <div className="bg-blue-50 border border-blue-100 rounded-lg p-6 mb-8 animate-fade-in">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="text-blue-800 font-medium">No Payment Method Selected</p>
+            <p className="text-sm text-blue-600">
+              Please select a payment method to see the payment schedule.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (paymentType === 'one-time') {
     return (
       <div className="bg-green-50 border border-green-100 rounded-lg p-6 mb-8 animate-fade-in">
@@ -51,7 +68,19 @@ const PaymentPlanDisplay: React.FC<PaymentPlanDisplayProps> = ({
   }
 
   if (!interval || !paymentFrequency) {
-    return null;
+    return (
+      <div className="bg-amber-50 border border-amber-100 rounded-lg p-6 mb-8 animate-fade-in">
+        <div className="flex items-start gap-3">
+          <Clock className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="text-amber-800 font-medium">Partial Payments Selected</p>
+            <p className="text-sm text-amber-600">
+              Please choose a payment frequency to see the detailed payment schedule.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
