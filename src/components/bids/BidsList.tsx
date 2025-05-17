@@ -1,12 +1,34 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Bid } from '@/types/platform';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Search, Filter } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Input } from '@/components/ui/input';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 // Mock user data for now
 const mockUsers = {
@@ -30,7 +52,15 @@ interface BidsListProps {
   bids: Bid[];
 }
 
+const ITEMS_PER_PAGE = 5;
+
 const BidsList: React.FC<BidsListProps> = ({ bids }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  
   const getBidStatusClass = (status: string) => {
     switch(status) {
       case 'pending':
@@ -70,16 +100,168 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
     return acc;
   }, {} as Record<string, Bid[]>);
 
-  const needIds = Object.keys(groupedBids);
+  // Filter templates based on search query and filters
+  const filteredNeedIds = Object.keys(groupedBids).filter(needId => {
+    const needInfo = mockNeeds[needId];
+    const templateBids = groupedBids[needId];
+    
+    if (!needInfo) return false;
+    
+    // Filter by search query
+    if (searchQuery && !needInfo.title.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
+    }
+    
+    // Filter by category
+    if (categoryFilter && needInfo.category !== categoryFilter) {
+      return false;
+    }
+    
+    // Filter by status
+    if (statusFilter) {
+      return templateBids.some(bid => bid.status === statusFilter);
+    }
+    
+    return true;
+  });
 
-  if (needIds.length === 0) {
-    return <p className="text-center py-6 text-gray-500">No bids found</p>;
+  // Pagination
+  const totalPages = Math.ceil(filteredNeedIds.length / ITEMS_PER_PAGE);
+  const paginatedNeedIds = filteredNeedIds.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE, 
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  // Get unique categories for filter
+  const categories = [...new Set(Object.values(mockNeeds).map(need => need.category))];
+
+  if (filteredNeedIds.length === 0) {
+    return (
+      <div>
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Search templates..."
+              className="pl-10"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
+          </div>
+          <Collapsible open={isFiltersOpen} onOpenChange={setIsFiltersOpen} className="w-full sm:w-auto">
+            <div className="flex">
+              <CollapsibleTrigger asChild>
+                <Button variant="outline" className="gap-2 w-full sm:w-auto">
+                  <Filter className="h-4 w-4" />
+                  Filters
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent className="mt-4 space-y-4 border rounded-md p-4 bg-white">
+              <div>
+                <h4 className="font-medium mb-2">Category</h4>
+                <div className="flex flex-wrap gap-2">
+                  {categories.map((category) => (
+                    <Badge 
+                      key={category}
+                      variant={categoryFilter === category ? "default" : "outline"}
+                      className="cursor-pointer"
+                      onClick={() => setCategoryFilter(categoryFilter === category ? null : category)}
+                    >
+                      {category.replace('_', ' ')}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">Status</h4>
+                <div className="flex flex-wrap gap-2">
+                  {['pending', 'accepted', 'rejected', 'contract_created'].map((status) => (
+                    <Badge 
+                      key={status}
+                      variant={statusFilter === status ? "default" : "outline"}
+                      className="cursor-pointer"
+                      onClick={() => setStatusFilter(statusFilter === status ? null : status)}
+                    >
+                      {getBidStatusText(status)}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
+        <p className="text-center py-6 text-gray-500">No templates found matching your criteria</p>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
-      <Accordion type="multiple" defaultValue={needIds}>
-        {needIds.map(needId => {
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+          <Input
+            type="text"
+            placeholder="Search templates..."
+            className="pl-10"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+          />
+        </div>
+        <Collapsible open={isFiltersOpen} onOpenChange={setIsFiltersOpen} className="w-full sm:w-auto">
+          <div className="flex">
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" className="gap-2 w-full sm:w-auto">
+                <Filter className="h-4 w-4" />
+                Filters
+              </Button>
+            </CollapsibleTrigger>
+          </div>
+          <CollapsibleContent className="mt-4 space-y-4 border rounded-md p-4 bg-white">
+            <div>
+              <h4 className="font-medium mb-2">Category</h4>
+              <div className="flex flex-wrap gap-2">
+                {categories.map((category) => (
+                  <Badge 
+                    key={category}
+                    variant={categoryFilter === category ? "default" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => setCategoryFilter(categoryFilter === category ? null : category)}
+                  >
+                    {category.replace('_', ' ')}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h4 className="font-medium mb-2">Status</h4>
+              <div className="flex flex-wrap gap-2">
+                {['pending', 'accepted', 'rejected', 'contract_created'].map((status) => (
+                  <Badge 
+                    key={status}
+                    variant={statusFilter === status ? "default" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => setStatusFilter(statusFilter === status ? null : status)}
+                  >
+                    {getBidStatusText(status)}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
+
+      <Accordion type="multiple" defaultValue={paginatedNeedIds}>
+        {paginatedNeedIds.map(needId => {
           const templateBids = groupedBids[needId];
           const needInfo = mockNeeds[needId];
           
@@ -102,7 +284,7 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
                       {needInfo.category.replace('_', ' ')}
                     </Badge>
                     {hasAcceptedBids && (
-                      <Badge variant="default" className="bg-green-500 text-xs">
+                      <Badge variant="success" className="text-xs">
                         Has accepted bids
                       </Badge>
                     )}
@@ -147,7 +329,12 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
                               </span>
                             </TableCell>
                             <TableCell>
-                              <Badge className={getBidStatusClass(bid.status)}>
+                              <Badge variant={
+                                bid.status === 'pending' ? 'warning' :
+                                bid.status === 'accepted' ? 'success' :
+                                bid.status === 'rejected' ? 'danger' :
+                                bid.status === 'contract_created' ? 'purple' : 'default'
+                              }>
                                 {getBidStatusText(bid.status)}
                               </Badge>
                             </TableCell>
@@ -175,6 +362,35 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
           );
         })}
       </Accordion>
+
+      {totalPages > 1 && (
+        <Pagination className="mt-6">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious 
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+              />
+            </PaginationItem>
+            {[...Array(totalPages)].map((_, i) => (
+              <PaginationItem key={i}>
+                <PaginationLink 
+                  isActive={currentPage === i + 1}
+                  onClick={() => setCurrentPage(i + 1)}
+                >
+                  {i + 1}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext 
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   );
 };
