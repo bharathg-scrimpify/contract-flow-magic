@@ -79,6 +79,15 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 Browse
               </Button>
             </Link>
+            <Link to="/bids">
+              <Button 
+                variant={isActive('/bids') ? "default" : "ghost"}
+                className={isActive('/bids') ? "bg-purple-100 text-purple-800 hover:bg-purple-200" : ""}
+              >
+                <MessageSquare className="mr-2 h-4 w-4" />
+                Bids
+              </Button>
+            </Link>
             <Link to="/contracts">
               <Button 
                 variant={isActive('/contracts') ? "default" : "ghost"}
@@ -185,6 +194,15 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               >
                 <Search className="mr-2 h-4 w-4" />
                 Browse
+              </Button>
+            </Link>
+            <Link to="/bids" onClick={() => setMobileMenuOpen(false)}>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start mb-2"
+              >
+                <MessageSquare className="mr-2 h-4 w-4" />
+                Bids
               </Button>
             </Link>
             <Link to="/contracts" onClick={() => setMobileMenuOpen(false)}>

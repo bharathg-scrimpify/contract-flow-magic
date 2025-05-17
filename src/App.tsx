@@ -15,6 +15,7 @@ import Profile from "./pages/profile/Profile";
 import BrowsePage from "./pages/browse/BrowsePage";
 import ListingDetailPage from "./pages/listings/ListingDetailPage";
 import AttendancePage from "./pages/attendance/AttendancePage";
+import BidsPage from "./pages/bids/BidsPage";
 import { AuthProvider } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
@@ -49,6 +50,9 @@ const App = () => (
             
             {/* Attendance Routes */}
             <Route path="/attendance" element={<AttendancePage />} />
+            
+            {/* Bids Routes */}
+            <Route path="/bids" element={<BidsPage />} />
             
             {/* Redirect root to dashboard */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
