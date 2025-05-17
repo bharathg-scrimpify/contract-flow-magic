@@ -5,6 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
+import { ChevronDown } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 // Mock user data for now
 const mockUsers = {
@@ -59,74 +61,120 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
     }
   };
 
+  // Group bids by template (needId)
+  const groupedBids = bids.reduce((acc, bid) => {
+    if (!acc[bid.needId]) {
+      acc[bid.needId] = [];
+    }
+    acc[bid.needId].push(bid);
+    return acc;
+  }, {} as Record<string, Bid[]>);
+
+  const needIds = Object.keys(groupedBids);
+
+  if (needIds.length === 0) {
+    return <p className="text-center py-6 text-gray-500">No bids found</p>;
+  }
+
   return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Template</TableHead>
-            <TableHead>Offer From</TableHead>
-            <TableHead>Bid Amount</TableHead>
-            <TableHead>Match %</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {bids.map((bid) => {
-            const offerUser = mockUsers[bid.offerOwnerId];
-            const needInfo = mockNeeds[bid.needId];
-            
-            if (!offerUser || !needInfo) return null;
-            
-            return (
-              <TableRow key={bid.id}>
-                <TableCell className="font-medium">
+    <div className="space-y-6">
+      <Accordion type="multiple" defaultValue={needIds}>
+        {needIds.map(needId => {
+          const templateBids = groupedBids[needId];
+          const needInfo = mockNeeds[needId];
+          
+          if (!needInfo) return null;
+          
+          const hasAcceptedBids = templateBids.some(bid => bid.status === 'accepted' || bid.status === 'contract_created');
+          
+          return (
+            <AccordionItem key={needId} value={needId} className="border rounded-md overflow-hidden mb-4 bg-white">
+              <AccordionTrigger className="p-4 hover:bg-gray-50 transition-colors">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full text-left">
                   <div>
-                    <p className="font-semibold">{needInfo.title}</p>
-                    <p className="text-xs text-gray-500">{needInfo.category.replace('_', ' ')}</p>
+                    <h3 className="text-lg font-semibold text-gray-900">{needInfo.title}</h3>
+                    <p className="text-sm text-gray-500">
+                      {templateBids.length} {templateBids.length === 1 ? 'bid' : 'bids'} received
+                    </p>
                   </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-full overflow-hidden bg-gray-100">
-                      <img src={offerUser.image} alt={offerUser.name} className="h-full w-full object-cover" />
-                    </div>
-                    <span>{offerUser.name}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {bid.bidAmount.value} {bid.bidAmount.currency} per {bid.bidAmount.unit}
-                </TableCell>
-                <TableCell>
-                  <span className={`font-medium ${bid.matchConfidence > 80 ? 'text-green-600' : 'text-amber-600'}`}>
-                    {bid.matchConfidence}%
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <Badge className={getBidStatusClass(bid.status)}>
-                    {getBidStatusText(bid.status)}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <span className="whitespace-nowrap">
-                    {formatDistanceToNow(new Date(bid.createdAt), { addSuffix: true })}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline">View</Button>
-                    {bid.status === 'accepted' && !bid.contractId && (
-                      <Button size="sm" className="bg-purple-600 hover:bg-purple-700">Create Contract</Button>
+                  <div className="flex gap-2 mt-2 sm:mt-0">
+                    <Badge variant="secondary" className="text-xs">
+                      {needInfo.category.replace('_', ' ')}
+                    </Badge>
+                    {hasAcceptedBids && (
+                      <Badge variant="default" className="bg-green-500 text-xs">
+                        Has accepted bids
+                      </Badge>
                     )}
                   </div>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Offer From</TableHead>
+                        <TableHead>Bid Amount</TableHead>
+                        <TableHead>Match %</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {templateBids.map((bid) => {
+                        const offerUser = mockUsers[bid.offerOwnerId];
+                        
+                        if (!offerUser) return null;
+                        
+                        return (
+                          <TableRow key={bid.id} className="hover:bg-gray-50 transition-colors">
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <div className="h-8 w-8 rounded-full overflow-hidden bg-gray-100">
+                                  <img src={offerUser.image} alt={offerUser.name} className="h-full w-full object-cover" />
+                                </div>
+                                <span>{offerUser.name}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {bid.bidAmount.value} {bid.bidAmount.currency} per {bid.bidAmount.unit}
+                            </TableCell>
+                            <TableCell>
+                              <span className={`font-medium ${bid.matchConfidence > 80 ? 'text-green-600' : 'text-amber-600'}`}>
+                                {bid.matchConfidence}%
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={getBidStatusClass(bid.status)}>
+                                {getBidStatusText(bid.status)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <span className="whitespace-nowrap">
+                                {formatDistanceToNow(new Date(bid.createdAt), { addSuffix: true })}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
+                                <Button size="sm" variant="outline">View</Button>
+                                {bid.status === 'accepted' && !bid.contractId && (
+                                  <Button size="sm" className="bg-purple-600 hover:bg-purple-700">Create Contract</Button>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          );
+        })}
+      </Accordion>
     </div>
   );
 };
