@@ -22,18 +22,33 @@ interface BidCardProps {
 }
 
 const BidCard: React.FC<BidCardProps> = ({ bid }) => {
-  const getBidStatusColor = (status: string) => {
+  const getBidStatusBorder = (status: string) => {
     switch(status) {
       case 'pending':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
+        return 'border-amber-200';
       case 'accepted':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'border-emerald-200';
       case 'rejected':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'border-rose-200';
       case 'contract_created':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
+        return 'border-violet-200';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'border-gray-200';
+    }
+  };
+
+  const getBidStatusVariant = (status: string): string => {
+    switch(status) {
+      case 'pending':
+        return 'pending';
+      case 'accepted':
+        return 'accepted';
+      case 'rejected':
+        return 'rejected';
+      case 'contract_created':
+        return 'contracted';
+      default:
+        return 'secondary';
     }
   };
 
@@ -57,7 +72,7 @@ const BidCard: React.FC<BidCardProps> = ({ bid }) => {
   if (!offerUser) return null;
 
   return (
-    <Card className={`overflow-hidden transition-all hover:shadow-md border-l-4 ${getBidStatusColor(bid.status)}`}>
+    <Card className={`overflow-hidden transition-all hover:shadow-md border-l-4 ${getBidStatusBorder(bid.status)}`}>
       <CardHeader className="p-4 pb-2">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-3">
@@ -71,7 +86,7 @@ const BidCard: React.FC<BidCardProps> = ({ bid }) => {
               </p>
             </div>
           </div>
-          <Badge className={`${getBidStatusColor(bid.status)}`}>
+          <Badge variant={getBidStatusVariant(bid.status)}>
             {getBidStatusText(bid.status)}
           </Badge>
         </div>
@@ -85,8 +100,8 @@ const BidCard: React.FC<BidCardProps> = ({ bid }) => {
           <div className="w-full bg-gray-200 rounded-full h-1.5">
             <div 
               className={`h-1.5 rounded-full ${
-                bid.matchConfidence > 85 ? 'bg-green-500' : 
-                bid.matchConfidence > 70 ? 'bg-yellow-500' : 'bg-orange-500'
+                bid.matchConfidence > 85 ? 'bg-emerald-500' : 
+                bid.matchConfidence > 70 ? 'bg-amber-500' : 'bg-rose-500'
               }`}
               style={{ width: `${bid.matchConfidence}%` }}
             ></div>

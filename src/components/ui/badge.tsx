@@ -17,15 +17,24 @@ const badgeVariants = cva(
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
         success: 
-          "border-transparent bg-green-100 text-green-800 hover:bg-green-200",
+          "border-transparent bg-green-100 text-green-800 hover:bg-green-200/90",
         warning: 
-          "border-transparent bg-orange-100 text-orange-800 hover:bg-orange-200",
+          "border-transparent bg-amber-100 text-amber-800 hover:bg-amber-200/90",
         danger: 
-          "border-transparent bg-red-100 text-red-800 hover:bg-red-200",
+          "border-transparent bg-red-100 text-red-800 hover:bg-red-200/90",
         info: 
-          "border-transparent bg-blue-100 text-blue-800 hover:bg-blue-200",
+          "border-transparent bg-blue-100 text-blue-800 hover:bg-blue-200/90",
         purple: 
-          "border-transparent bg-purple-100 text-purple-800 hover:bg-purple-200",
+          "border-transparent bg-purple-100 text-purple-800 hover:bg-purple-200/90",
+        // Enhanced status colors
+        pending: 
+          "border-transparent bg-amber-50 text-amber-700 hover:bg-amber-100/90",
+        accepted: 
+          "border-transparent bg-emerald-50 text-emerald-700 hover:bg-emerald-100/90",
+        rejected: 
+          "border-transparent bg-rose-50 text-rose-700 hover:bg-rose-100/90",
+        contracted: 
+          "border-transparent bg-violet-50 text-violet-700 hover:bg-violet-100/90",
       },
     },
     defaultVariants: {

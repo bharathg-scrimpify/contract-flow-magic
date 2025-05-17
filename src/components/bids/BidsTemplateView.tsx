@@ -3,6 +3,7 @@ import React from 'react';
 import { Bid } from '@/types/platform';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import BidCard from '@/components/bids/BidCard';
 
 // Mock need data for now
@@ -32,7 +33,7 @@ const BidsTemplateView: React.FC<BidsTemplateViewProps> = ({ bids, needIds }) =>
             if (!needInfo) return null;
             
             return (
-              <AccordionItem key={needId} value={needId} className="border bg-purple-50/30 rounded-lg mb-4 overflow-hidden">
+              <AccordionItem key={needId} value={needId} className="border bg-purple-50/30 rounded-lg mb-4 overflow-hidden shadow-sm hover:shadow-md transition-all">
                 <AccordionTrigger className="px-6 py-4 hover:bg-purple-50/50">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full text-left">
                     <div>
@@ -42,13 +43,13 @@ const BidsTemplateView: React.FC<BidsTemplateViewProps> = ({ bids, needIds }) =>
                       </p>
                     </div>
                     <div className="flex gap-2 mt-2 sm:mt-0">
-                      <span className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full">
+                      <Badge variant="purple" className="text-xs">
                         {needInfo.category.replace('_', ' ')}
-                      </span>
+                      </Badge>
                       {needBids.some(bid => bid.status === 'accepted') && (
-                        <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">
+                        <Badge variant="accepted" className="text-xs">
                           Has accepted bids
-                        </span>
+                        </Badge>
                       )}
                     </div>
                   </div>

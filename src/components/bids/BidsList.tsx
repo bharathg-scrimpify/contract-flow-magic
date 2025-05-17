@@ -29,6 +29,11 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 
 // Mock user data for now
 const mockUsers = {
@@ -61,18 +66,18 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   
-  const getBidStatusClass = (status: string) => {
+  const getBidStatusVariant = (status: string): string => {
     switch(status) {
       case 'pending':
-        return 'bg-orange-100 text-orange-800';
+        return 'pending';
       case 'accepted':
-        return 'bg-green-100 text-green-800';
+        return 'accepted';
       case 'rejected':
-        return 'bg-red-100 text-red-800';
+        return 'rejected';
       case 'contract_created':
-        return 'bg-purple-100 text-purple-800';
+        return 'contracted';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'secondary';
     }
   };
 
@@ -247,7 +252,7 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
                 {['pending', 'accepted', 'rejected', 'contract_created'].map((status) => (
                   <Badge 
                     key={status}
-                    variant={statusFilter === status ? "default" : "outline"}
+                    variant={statusFilter === status ? getBidStatusVariant(status) : "outline"}
                     className="cursor-pointer"
                     onClick={() => setStatusFilter(statusFilter === status ? null : status)}
                   >
@@ -270,7 +275,7 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
           const hasAcceptedBids = templateBids.some(bid => bid.status === 'accepted' || bid.status === 'contract_created');
           
           return (
-            <AccordionItem key={needId} value={needId} className="border rounded-md overflow-hidden mb-4 bg-white">
+            <AccordionItem key={needId} value={needId} className="border rounded-md overflow-hidden mb-4 bg-white shadow-sm hover:shadow-md transition-all">
               <AccordionTrigger className="p-4 hover:bg-gray-50 transition-colors">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full text-left">
                   <div>
@@ -284,7 +289,7 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
                       {needInfo.category.replace('_', ' ')}
                     </Badge>
                     {hasAcceptedBids && (
-                      <Badge variant="success" className="text-xs">
+                      <Badge variant="accepted" className="text-xs">
                         Has accepted bids
                       </Badge>
                     )}
@@ -311,47 +316,106 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
                         if (!offerUser) return null;
                         
                         return (
-                          <TableRow key={bid.id} className="hover:bg-gray-50 transition-colors">
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <div className="h-8 w-8 rounded-full overflow-hidden bg-gray-100">
-                                  <img src={offerUser.image} alt={offerUser.name} className="h-full w-full object-cover" />
+                          <HoverCard key={bid.id}>
+                            <HoverCardTrigger asChild>
+                              <TableRow className="hover:bg-gray-50/70 transition-colors cursor-pointer">
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <div className="h-8 w-8 rounded-full overflow-hidden bg-gray-100">
+                                      <img src={offerUser.image} alt={offerUser.name} className="h-full w-full object-cover" />
+                                    </div>
+                                    <span>{offerUser.name}</span>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  {bid.bidAmount.value} {bid.bidAmount.currency} per {bid.bidAmount.unit}
+                                </TableCell>
+                                <TableCell>
+                                  <span className={`font-medium ${bid.matchConfidence > 80 ? 'text-green-600' : 'text-amber-600'}`}>
+                                    {bid.matchConfidence}%
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant={getBidStatusVariant(bid.status)}>
+                                    {getBidStatusText(bid.status)}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <span className="whitespace-nowrap">
+                                    {formatDistanceToNow(new Date(bid.createdAt), { addSuffix: true })}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex gap-2">
+                                    <Button size="sm" variant="outline">View</Button>
+                                    {bid.status === 'accepted' && !bid.contractId && (
+                                      <Button size="sm" className="bg-purple-600 hover:bg-purple-700">Create Contract</Button>
+                                    )}
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            </HoverCardTrigger>
+                            <HoverCardContent className="w-80 p-0 backdrop-blur-sm">
+                              <div className="p-4 border-b">
+                                <div className="flex justify-between items-start mb-3">
+                                  <div className="flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-100">
+                                      <img src={offerUser.image} alt={offerUser.name} className="h-full w-full object-cover" />
+                                    </div>
+                                    <div>
+                                      <h4 className="font-semibold text-gray-900">{offerUser.name}</h4>
+                                      <p className="text-xs text-gray-500">
+                                        {formatDistanceToNow(new Date(bid.createdAt), { addSuffix: true })}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <Badge variant={getBidStatusVariant(bid.status)}>
+                                    {getBidStatusText(bid.status)}
+                                  </Badge>
                                 </div>
-                                <span>{offerUser.name}</span>
+                                
+                                <div className="mb-3">
+                                  <div className="flex justify-between items-center mb-1">
+                                    <span className="text-sm font-medium text-gray-500">Match Confidence</span>
+                                    <span className="text-sm font-semibold text-gray-900">{bid.matchConfidence}%</span>
+                                  </div>
+                                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                    <div 
+                                      className={`h-1.5 rounded-full ${
+                                        bid.matchConfidence > 85 ? 'bg-emerald-500' : 
+                                        bid.matchConfidence > 70 ? 'bg-amber-500' : 'bg-rose-500'
+                                      }`}
+                                      style={{ width: `${bid.matchConfidence}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
                               </div>
-                            </TableCell>
-                            <TableCell>
-                              {bid.bidAmount.value} {bid.bidAmount.currency} per {bid.bidAmount.unit}
-                            </TableCell>
-                            <TableCell>
-                              <span className={`font-medium ${bid.matchConfidence > 80 ? 'text-green-600' : 'text-amber-600'}`}>
-                                {bid.matchConfidence}%
-                              </span>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={
-                                bid.status === 'pending' ? 'warning' :
-                                bid.status === 'accepted' ? 'success' :
-                                bid.status === 'rejected' ? 'danger' :
-                                bid.status === 'contract_created' ? 'purple' : 'default'
-                              }>
-                                {getBidStatusText(bid.status)}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <span className="whitespace-nowrap">
-                                {formatDistanceToNow(new Date(bid.createdAt), { addSuffix: true })}
-                              </span>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-2">
-                                <Button size="sm" variant="outline">View</Button>
-                                {bid.status === 'accepted' && !bid.contractId && (
-                                  <Button size="sm" className="bg-purple-600 hover:bg-purple-700">Create Contract</Button>
-                                )}
+                              
+                              <div className="p-4">
+                                <h5 className="text-sm font-medium text-gray-700 mb-2">Message</h5>
+                                <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
+                                  {bid.message || "No message provided."}
+                                </p>
+                                
+                                <div className="mt-4 flex justify-between items-center">
+                                  <div>
+                                    <span className="text-xs text-gray-500 block">Bid Amount</span>
+                                    <p className="font-bold text-purple-700">
+                                      {bid.bidAmount.value} {bid.bidAmount.currency}
+                                      <span className="text-xs font-normal text-gray-500 ml-1">per {bid.bidAmount.unit}</span>
+                                    </p>
+                                  </div>
+                                  
+                                  {bid.status === 'pending' && (
+                                    <div className="flex gap-2">
+                                      <Button size="sm" variant="outline" className="text-xs py-1 h-8">Reject</Button>
+                                      <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-xs py-1 h-8">Accept</Button>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                            </TableCell>
-                          </TableRow>
+                            </HoverCardContent>
+                          </HoverCard>
                         );
                       })}
                     </TableBody>
