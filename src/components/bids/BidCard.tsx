@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Bid } from '@/types/platform';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
@@ -37,7 +36,7 @@ const BidCard: React.FC<BidCardProps> = ({ bid }) => {
     }
   };
 
-  const getBidStatusVariant = (status: string): string => {
+  const getBidStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "danger" | "info" | "purple" | "pending" | "accepted" | "rejected" | "contracted" => {
     switch(status) {
       case 'pending':
         return 'pending';

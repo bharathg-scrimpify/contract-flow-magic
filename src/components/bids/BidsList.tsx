@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Bid } from '@/types/platform';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -66,7 +65,7 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   
-  const getBidStatusVariant = (status: string): string => {
+  const getBidStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "danger" | "info" | "purple" | "pending" | "accepted" | "rejected" | "contracted" => {
     switch(status) {
       case 'pending':
         return 'pending';
