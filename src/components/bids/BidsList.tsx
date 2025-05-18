@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Bid } from '@/types/platform';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -33,6 +34,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import { useAuth } from '@/contexts/AuthContext';
 
 // Mock user data for now
 const mockUsers = {
@@ -59,11 +61,15 @@ interface BidsListProps {
 const ITEMS_PER_PAGE = 5;
 
 const BidsList: React.FC<BidsListProps> = ({ bids }) => {
+  const { currentUser } = useAuth();
+  const currentUserId = currentUser?.uid || '';
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [templateTypeFilter, setTemplateTypeFilter] = useState<'all' | 'need' | 'offer'>('all');
   
   const getBidStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "danger" | "info" | "purple" | "pending" | "accepted" | "rejected" | "contracted" => {
     switch(status) {
@@ -126,6 +132,14 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
       return templateBids.some(bid => bid.status === statusFilter);
     }
     
+    // Filter by template type (need/offer)
+    if (templateTypeFilter !== 'all') {
+      const firstBid = templateBids[0];
+      const isMyNeed = firstBid.needOwnerId === currentUserId;
+      if (templateTypeFilter === 'need' && !isMyNeed) return false;
+      if (templateTypeFilter === 'offer' && isMyNeed) return false;
+    }
+    
     return true;
   });
 
@@ -167,6 +181,21 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
             </div>
             <CollapsibleContent className="mt-4 space-y-4 border rounded-md p-4 bg-white">
               <div>
+                <h4 className="font-medium mb-2">Template Type</h4>
+                <div className="flex flex-wrap gap-2">
+                  {['all', 'need', 'offer'].map((type) => (
+                    <Badge 
+                      key={type}
+                      variant={templateTypeFilter === type ? "default" : "outline"}
+                      className="cursor-pointer"
+                      onClick={() => setTemplateTypeFilter(type as 'all' | 'need' | 'offer')}
+                    >
+                      {type === 'all' ? 'All Templates' : type === 'need' ? 'My Needs' : 'My Offers'}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <div>
                 <h4 className="font-medium mb-2">Category</h4>
                 <div className="flex flex-wrap gap-2">
                   {categories.map((category) => (
@@ -187,7 +216,7 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
                   {['pending', 'accepted', 'rejected', 'contract_created'].map((status) => (
                     <Badge 
                       key={status}
-                      variant={statusFilter === status ? "default" : "outline"}
+                      variant={statusFilter === status ? getBidStatusVariant(status) : "outline"}
                       className="cursor-pointer"
                       onClick={() => setStatusFilter(statusFilter === status ? null : status)}
                     >
@@ -231,6 +260,21 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
           </div>
           <CollapsibleContent className="mt-4 space-y-4 border rounded-md p-4 bg-white">
             <div>
+              <h4 className="font-medium mb-2">Template Type</h4>
+              <div className="flex flex-wrap gap-2">
+                {['all', 'need', 'offer'].map((type) => (
+                  <Badge 
+                    key={type}
+                    variant={templateTypeFilter === type ? "default" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => setTemplateTypeFilter(type as 'all' | 'need' | 'offer')}
+                  >
+                    {type === 'all' ? 'All Templates' : type === 'need' ? 'My Needs' : 'My Offers'}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            <div>
               <h4 className="font-medium mb-2">Category</h4>
               <div className="flex flex-wrap gap-2">
                 {categories.map((category) => (
@@ -272,16 +316,20 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
           if (!needInfo) return null;
           
           const hasAcceptedBids = templateBids.some(bid => bid.status === 'accepted' || bid.status === 'contract_created');
+          const isMyNeed = templateBids[0].needOwnerId === currentUserId;
           
           return (
             <AccordionItem key={needId} value={needId} className="border rounded-md overflow-hidden mb-4 bg-white shadow-sm hover:shadow-md transition-all">
               <AccordionTrigger className="p-4 hover:bg-gray-50 transition-colors">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full text-left">
-                  <div>
+                  <div className="flex items-center">
                     <h3 className="text-lg font-semibold text-gray-900">{needInfo.title}</h3>
-                    <p className="text-sm text-gray-500">
-                      {templateBids.length} {templateBids.length === 1 ? 'bid' : 'bids'} received
-                    </p>
+                    <Badge 
+                      variant={isMyNeed ? "info" : "success"} 
+                      className="ml-2"
+                    >
+                      {isMyNeed ? 'My Need' : 'My Offer'}
+                    </Badge>
                   </div>
                   <div className="flex gap-2 mt-2 sm:mt-0">
                     <Badge variant="secondary" className="text-xs">
@@ -368,9 +416,14 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
                                       </p>
                                     </div>
                                   </div>
-                                  <Badge variant={getBidStatusVariant(bid.status)}>
-                                    {getBidStatusText(bid.status)}
-                                  </Badge>
+                                  <div className="flex flex-col items-end gap-1">
+                                    <Badge variant={getBidStatusVariant(bid.status)}>
+                                      {getBidStatusText(bid.status)}
+                                    </Badge>
+                                    <Badge variant={isMyNeed ? "info" : "success"} className="text-xs">
+                                      {isMyNeed ? 'My Need' : 'My Offer'}
+                                    </Badge>
+                                  </div>
                                 </div>
                                 
                                 <div className="mb-3">
@@ -405,7 +458,7 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
                                     </p>
                                   </div>
                                   
-                                  {bid.status === 'pending' && (
+                                  {bid.status === 'pending' && isMyNeed && (
                                     <div className="flex gap-2">
                                       <Button size="sm" variant="outline" className="text-xs py-1 h-8">Reject</Button>
                                       <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-xs py-1 h-8">Accept</Button>

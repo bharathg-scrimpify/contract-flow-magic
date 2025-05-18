@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Bid } from '@/types/platform';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
@@ -18,9 +19,10 @@ const mockUsers = {
 
 interface BidCardProps {
   bid: Bid;
+  isMyNeed?: boolean;
 }
 
-const BidCard: React.FC<BidCardProps> = ({ bid }) => {
+const BidCard: React.FC<BidCardProps> = ({ bid, isMyNeed = true }) => {
   const getBidStatusBorder = (status: string) => {
     switch(status) {
       case 'pending':
@@ -117,6 +119,9 @@ const BidCard: React.FC<BidCardProps> = ({ bid }) => {
               <span className="text-xs font-normal text-gray-500 ml-1">per {bid.bidAmount.unit}</span>
             </p>
           </div>
+          <Badge variant={isMyNeed ? "info" : "success"} className="ml-2">
+            {isMyNeed ? 'My Need' : 'My Offer'}
+          </Badge>
         </div>
       </CardContent>
       <CardFooter className="p-4 pt-0 flex gap-2">
