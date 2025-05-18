@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
-import { ChevronDown, Search, Filter } from 'lucide-react';
+import { ChevronDown, Search, Filter, FileText } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
 import {
@@ -22,37 +22,11 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { useAuth } from '@/contexts/AuthContext';
-
-// Mock user data for now
-const mockUsers = {
-  'user2': { name: 'DJ Mike', image: 'https://i.pravatar.cc/150?img=1' },
-  'user3': { name: 'DJ Sarah', image: 'https://i.pravatar.cc/150?img=2' },
-  'user4': { name: 'Catering Plus', image: 'https://i.pravatar.cc/150?img=3' },
-  'user5': { name: 'Elite Foods', image: 'https://i.pravatar.cc/150?img=4' },
-  'user6': { name: 'LightUp Inc', image: 'https://i.pravatar.cc/150?img=5' },
-  'user7': { name: 'Flower Power', image: 'https://i.pravatar.cc/150?img=6' },
-};
-
-// Mock need data for now
-const mockNeeds = {
-  'need1': { title: 'DJ Services for Wedding', category: 'dj' },
-  'need2': { title: 'Catering for Corporate Event', category: 'catering' },
-  'need3': { title: 'Event Lighting', category: 'lighting_technician' },
-  'need4': { title: 'Flower Decoration', category: 'other' },
-};
 
 interface BidsListProps {
   bids: Bid[];
@@ -72,8 +46,8 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
   const [templateTypeFilter, setTemplateTypeFilter] = useState<'all' | 'need' | 'offer'>('all');
   
   const getBidStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "danger" | "info" | "purple" | "pending" | "accepted" | "rejected" | "contracted" => {
-    switch(status) {
-      case 'pending':
+    switch(status.toLowerCase()) {
+      case 'initial':
         return 'pending';
       case 'accepted':
         return 'accepted';
@@ -87,8 +61,8 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
   };
 
   const getBidStatusText = (status: string) => {
-    switch(status) {
-      case 'pending':
+    switch(status.toLowerCase()) {
+      case 'initial':
         return 'Pending';
       case 'accepted':
         return 'Accepted';
@@ -103,39 +77,43 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
 
   // Group bids by template (needId)
   const groupedBids = bids.reduce((acc, bid) => {
-    if (!acc[bid.needId]) {
-      acc[bid.needId] = [];
+    const needId = bid.needTemplate.id;
+    if (!acc[needId]) {
+      acc[needId] = [];
     }
-    acc[bid.needId].push(bid);
+    acc[needId].push(bid);
     return acc;
   }, {} as Record<string, Bid[]>);
 
   // Filter templates based on search query and filters
   const filteredNeedIds = Object.keys(groupedBids).filter(needId => {
-    const needInfo = mockNeeds[needId];
     const templateBids = groupedBids[needId];
+    if (templateBids.length === 0) return false;
     
-    if (!needInfo) return false;
+    const firstBid = templateBids[0];
+    const needTemplate = firstBid.needTemplate;
     
     // Filter by search query
-    if (searchQuery && !needInfo.title.toLowerCase().includes(searchQuery.toLowerCase())) {
+    if (searchQuery && !needTemplate.templateName.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
     
     // Filter by category
-    if (categoryFilter && needInfo.category !== categoryFilter) {
-      return false;
+    if (categoryFilter) {
+      const hasCategory = needTemplate.categorySelection.some(
+        cat => cat.name.toLowerCase() === categoryFilter.toLowerCase()
+      );
+      if (!hasCategory) return false;
     }
     
     // Filter by status
     if (statusFilter) {
-      return templateBids.some(bid => bid.status === statusFilter);
+      return templateBids.some(bid => bid.bidStatus.toLowerCase() === statusFilter.toLowerCase());
     }
     
     // Filter by template type (need/offer)
     if (templateTypeFilter !== 'all') {
-      const firstBid = templateBids[0];
-      const isMyNeed = firstBid.needOwnerId === currentUserId;
+      const isMyNeed = needTemplate.user.userId === currentUserId;
       if (templateTypeFilter === 'need' && !isMyNeed) return false;
       if (templateTypeFilter === 'offer' && isMyNeed) return false;
     }
@@ -151,7 +129,13 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
   );
 
   // Get unique categories for filter
-  const categories = [...new Set(Object.values(mockNeeds).map(need => need.category))];
+  const categoriesSet = new Set<string>();
+  bids.forEach(bid => {
+    bid.needTemplate.categorySelection.forEach(cat => {
+      categoriesSet.add(cat.name);
+    });
+  });
+  const categories = Array.from(categoriesSet);
 
   if (filteredNeedIds.length === 0) {
     return (
@@ -213,7 +197,7 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
               <div>
                 <h4 className="font-medium mb-2">Status</h4>
                 <div className="flex flex-wrap gap-2">
-                  {['pending', 'accepted', 'rejected', 'contract_created'].map((status) => (
+                  {['initial', 'accepted', 'rejected', 'contract_created'].map((status) => (
                     <Badge 
                       key={status}
                       variant={statusFilter === status ? getBidStatusVariant(status) : "outline"}
@@ -284,7 +268,7 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
                     className="cursor-pointer"
                     onClick={() => setCategoryFilter(categoryFilter === category ? null : category)}
                   >
-                    {category.replace('_', ' ')}
+                    {category}
                   </Badge>
                 ))}
               </div>
@@ -292,7 +276,7 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
             <div>
               <h4 className="font-medium mb-2">Status</h4>
               <div className="flex flex-wrap gap-2">
-                {['pending', 'accepted', 'rejected', 'contract_created'].map((status) => (
+                {['initial', 'accepted', 'rejected', 'contract_created'].map((status) => (
                   <Badge 
                     key={status}
                     variant={statusFilter === status ? getBidStatusVariant(status) : "outline"}
@@ -311,19 +295,24 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
       <Accordion type="multiple" defaultValue={paginatedNeedIds}>
         {paginatedNeedIds.map(needId => {
           const templateBids = groupedBids[needId];
-          const needInfo = mockNeeds[needId];
+          if (templateBids.length === 0) return null;
           
-          if (!needInfo) return null;
+          const firstBid = templateBids[0];
+          const needTemplate = firstBid.needTemplate;
           
-          const hasAcceptedBids = templateBids.some(bid => bid.status === 'accepted' || bid.status === 'contract_created');
-          const isMyNeed = templateBids[0].needOwnerId === currentUserId;
+          const hasAcceptedBids = templateBids.some(bid => 
+            bid.bidStatus.toLowerCase() === 'accepted' || 
+            bid.bidStatus.toLowerCase() === 'contract_created'
+          );
+          
+          const isMyNeed = needTemplate.user.userId === currentUserId;
           
           return (
             <AccordionItem key={needId} value={needId} className="border rounded-md overflow-hidden mb-4 bg-white shadow-sm hover:shadow-md transition-all">
               <AccordionTrigger className="p-4 hover:bg-gray-50 transition-colors">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full text-left">
                   <div className="flex items-center">
-                    <h3 className="text-lg font-semibold text-gray-900">{needInfo.title}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{needTemplate.templateName}</h3>
                     <Badge 
                       variant={isMyNeed ? "info" : "success"} 
                       className="ml-2"
@@ -332,9 +321,11 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
                     </Badge>
                   </div>
                   <div className="flex gap-2 mt-2 sm:mt-0">
-                    <Badge variant="secondary" className="text-xs">
-                      {needInfo.category.replace('_', ' ')}
-                    </Badge>
+                    {needTemplate.categorySelection.map((cat, idx) => (
+                      <Badge key={idx} variant="secondary" className="text-xs">
+                        {cat.name}
+                      </Badge>
+                    ))}
                     {hasAcceptedBids && (
                       <Badge variant="accepted" className="text-xs">
                         Has accepted bids
@@ -358,9 +349,10 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
                     </TableHeader>
                     <TableBody>
                       {templateBids.map((bid) => {
-                        const offerUser = mockUsers[bid.offerOwnerId];
-                        
-                        if (!offerUser) return null;
+                        const offerUser = bid.offerTemplate.user;
+                        const profileImage = offerUser.profilePic 
+                          ? `https://storage.googleapis.com/easygigsfrontend/${offerUser.profilePic.fileKey}`
+                          : 'https://i.pravatar.cc/150?img=1';
                         
                         return (
                           <HoverCard key={bid.id}>
@@ -369,33 +361,36 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
                                 <TableCell>
                                   <div className="flex items-center gap-2">
                                     <div className="h-8 w-8 rounded-full overflow-hidden bg-gray-100">
-                                      <img src={offerUser.image} alt={offerUser.name} className="h-full w-full object-cover" />
+                                      <img src={profileImage} alt={offerUser.fullName} className="h-full w-full object-cover" />
                                     </div>
-                                    <span>{offerUser.name}</span>
+                                    <span>{offerUser.fullName}</span>
                                   </div>
                                 </TableCell>
                                 <TableCell>
-                                  {bid.bidAmount.value} {bid.bidAmount.currency} per {bid.bidAmount.unit}
+                                  {bid.bidRate.rate.value} {bid.bidRate.rate.currencyCode} per {
+                                    bid.bidRate.durationType === 1 ? 'day' : 
+                                    bid.bidRate.durationType === 2 ? 'hour' : 'event'
+                                  }
                                 </TableCell>
                                 <TableCell>
-                                  <span className={`font-medium ${bid.matchConfidence > 80 ? 'text-green-600' : 'text-amber-600'}`}>
-                                    {bid.matchConfidence}%
+                                  <span className={`font-medium ${(bid.matchConfidence || 80) > 80 ? 'text-green-600' : 'text-amber-600'}`}>
+                                    {bid.matchConfidence || 80}%
                                   </span>
                                 </TableCell>
                                 <TableCell>
-                                  <Badge variant={getBidStatusVariant(bid.status)}>
-                                    {getBidStatusText(bid.status)}
+                                  <Badge variant={getBidStatusVariant(bid.bidStatus)}>
+                                    {getBidStatusText(bid.bidStatus)}
                                   </Badge>
                                 </TableCell>
                                 <TableCell>
                                   <span className="whitespace-nowrap">
-                                    {formatDistanceToNow(new Date(bid.createdAt), { addSuffix: true })}
+                                    {formatDistanceToNow(new Date(bid.createdDate), { addSuffix: true })}
                                   </span>
                                 </TableCell>
                                 <TableCell>
                                   <div className="flex gap-2">
                                     <Button size="sm" variant="outline">View</Button>
-                                    {bid.status === 'accepted' && !bid.contractId && (
+                                    {bid.bidStatus.toLowerCase() === 'accepted' && bid.canCreateContract && (
                                       <Button size="sm" className="bg-purple-600 hover:bg-purple-700">Create Contract</Button>
                                     )}
                                   </div>
@@ -407,18 +402,18 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
                                 <div className="flex justify-between items-start mb-3">
                                   <div className="flex items-center gap-3">
                                     <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-100">
-                                      <img src={offerUser.image} alt={offerUser.name} className="h-full w-full object-cover" />
+                                      <img src={profileImage} alt={offerUser.fullName} className="h-full w-full object-cover" />
                                     </div>
                                     <div>
-                                      <h4 className="font-semibold text-gray-900">{offerUser.name}</h4>
+                                      <h4 className="font-semibold text-gray-900">{offerUser.fullName}</h4>
                                       <p className="text-xs text-gray-500">
-                                        {formatDistanceToNow(new Date(bid.createdAt), { addSuffix: true })}
+                                        {formatDistanceToNow(new Date(bid.createdDate), { addSuffix: true })}
                                       </p>
                                     </div>
                                   </div>
                                   <div className="flex flex-col items-end gap-1">
-                                    <Badge variant={getBidStatusVariant(bid.status)}>
-                                      {getBidStatusText(bid.status)}
+                                    <Badge variant={getBidStatusVariant(bid.bidStatus)}>
+                                      {getBidStatusText(bid.bidStatus)}
                                     </Badge>
                                     <Badge variant={isMyNeed ? "info" : "success"} className="text-xs">
                                       {isMyNeed ? 'My Need' : 'My Offer'}
@@ -429,42 +424,56 @@ const BidsList: React.FC<BidsListProps> = ({ bids }) => {
                                 <div className="mb-3">
                                   <div className="flex justify-between items-center mb-1">
                                     <span className="text-sm font-medium text-gray-500">Match Confidence</span>
-                                    <span className="text-sm font-semibold text-gray-900">{bid.matchConfidence}%</span>
+                                    <span className="text-sm font-semibold text-gray-900">{bid.matchConfidence || 80}%</span>
                                   </div>
                                   <div className="w-full bg-gray-200 rounded-full h-1.5">
                                     <div 
                                       className={`h-1.5 rounded-full ${
-                                        bid.matchConfidence > 85 ? 'bg-emerald-500' : 
-                                        bid.matchConfidence > 70 ? 'bg-amber-500' : 'bg-rose-500'
+                                        (bid.matchConfidence || 80) > 85 ? 'bg-emerald-500' : 
+                                        (bid.matchConfidence || 80) > 70 ? 'bg-amber-500' : 'bg-rose-500'
                                       }`}
-                                      style={{ width: `${bid.matchConfidence}%` }}
+                                      style={{ width: `${bid.matchConfidence || 80}%` }}
                                     ></div>
                                   </div>
                                 </div>
                               </div>
                               
                               <div className="p-4">
-                                <h5 className="text-sm font-medium text-gray-700 mb-2">Message</h5>
+                                <h5 className="text-sm font-medium text-gray-700 mb-2">Notes</h5>
                                 <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
-                                  {bid.message || "No message provided."}
+                                  {bid.notes || "No notes provided."}
                                 </p>
                                 
                                 <div className="mt-4 flex justify-between items-center">
                                   <div>
                                     <span className="text-xs text-gray-500 block">Bid Amount</span>
                                     <p className="font-bold text-purple-700">
-                                      {bid.bidAmount.value} {bid.bidAmount.currency}
-                                      <span className="text-xs font-normal text-gray-500 ml-1">per {bid.bidAmount.unit}</span>
+                                      {bid.bidRate.rate.value} {bid.bidRate.rate.currencyCode}
+                                      <span className="text-xs font-normal text-gray-500 ml-1">
+                                        per {bid.bidRate.durationType === 1 ? 'day' : bid.bidRate.durationType === 2 ? 'hour' : 'event'}
+                                      </span>
                                     </p>
                                   </div>
                                   
-                                  {bid.status === 'pending' && isMyNeed && (
+                                  {bid.bidStatus.toLowerCase() === 'initial' && isMyNeed && (
                                     <div className="flex gap-2">
                                       <Button size="sm" variant="outline" className="text-xs py-1 h-8">Reject</Button>
                                       <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-xs py-1 h-8">Accept</Button>
                                     </div>
                                   )}
                                 </div>
+                                
+                                {bid.counterBidRate && (
+                                  <div className="mt-3 p-2 bg-blue-50 rounded-md border border-blue-100">
+                                    <span className="text-xs text-blue-600 font-medium">Counter Bid</span>
+                                    <p className="font-semibold text-blue-700">
+                                      {bid.counterBidRate.rate.value} {bid.counterBidRate.rate.currencyCode}
+                                      <span className="text-xs font-normal text-blue-500 ml-1">
+                                        per {bid.counterBidRate.durationType === 1 ? 'day' : bid.counterBidRate.durationType === 2 ? 'hour' : 'event'}
+                                      </span>
+                                    </p>
+                                  </div>
+                                )}
                               </div>
                             </HoverCardContent>
                           </HoverCard>
