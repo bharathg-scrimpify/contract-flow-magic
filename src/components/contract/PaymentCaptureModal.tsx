@@ -11,7 +11,7 @@ interface PaymentCaptureModalProps {
   isOpen: boolean;
   onClose: () => void;
   onPaymentSuccess: () => void;
-  tranche: PaymentTranche;
+  tranche: PaymentTranche | null;
   trancheIndex: number;
 }
 
@@ -53,6 +53,11 @@ const PaymentCaptureModal: React.FC<PaymentCaptureModalProps> = ({
       return dateStr;
     }
   };
+
+  // Don't render anything if tranche is null
+  if (!tranche) {
+    return null;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

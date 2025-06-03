@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { PaymentInterval, PaymentTranche } from '@/types/contract';
 import { format } from 'date-fns';
@@ -48,6 +49,8 @@ const PaymentPlanDisplay: React.FC<PaymentPlanDisplayProps> = ({
     if (!interval) return;
     
     const tranche = interval.Tranches[trancheIndex];
+    if (!tranche) return;
+    
     setCaptureModal({
       isOpen: true,
       tranche,
@@ -182,7 +185,7 @@ const PaymentPlanDisplay: React.FC<PaymentPlanDisplayProps> = ({
         isOpen={captureModal.isOpen}
         onClose={closeCaptureModal}
         onPaymentSuccess={handlePaymentCapture}
-        tranche={captureModal.tranche!}
+        tranche={captureModal.tranche}
         trancheIndex={captureModal.trancheIndex}
       />
     </>
