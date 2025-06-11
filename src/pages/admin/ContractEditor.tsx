@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,35 +9,54 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription } from '@/components/ui/form';
+import { Badge } from '@/components/ui/badge';
 import { Contract, ContractParty, ContractDetails, PaymentInterval, PaymentTranche } from '@/types/contract';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, ChevronRight, Save, Trash, Users, FileText, CalendarDays, DollarSign, History, Paperclip } from 'lucide-react';
+import { 
+  Calendar as CalendarIcon, 
+  ChevronRight, 
+  Save, 
+  Trash, 
+  Users, 
+  FileText, 
+  CalendarDays, 
+  DollarSign, 
+  History, 
+  Paperclip,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Shield,
+  RefreshCw
+} from 'lucide-react';
+import PaymentPlanDisplay from '@/components/contract/PaymentPlanDisplay';
 
 const getMockContract = (): Contract => ({
   id: 'c-12345',
-  subject: 'Contract Template',
-  type: 'Basic',
+  subject: 'Healthcare Support Contract',
+  type: 'Premium',
   facilitatedBy: 'Eveniopro',
-  status: 'draft',
-  progress: 25,
+  status: 'active',
+  progress: 65,
   from: {
     name: 'Sai Teja Kotagiri',
     email: 'samjose@gmail.com',
+    organization: 'HealthCare Solutions Inc.',
+    address: '123 Medical Plaza, Healthcare District, NY 10001'
   },
   to: {
     name: 'Mittu HIC',
     email: 'mittuhic@example.com',
+    organization: 'Regional Medical Center',
+    address: 'Building number 220, Hyderabad Telangana 50007'
   },
   details: {
-    placeOfService: 'Building number 220Hyderabad Telangana 50007',
-    startDate: 'Mar 18 2025, 1:58 PM',
-    endDate: 'Mar 25 2025, 1:58 PM',
+    placeOfService: 'Building number 220, Hyderabad Telangana 50007',
+    startDate: '2025-03-18T13:58:00Z',
+    endDate: '2025-03-25T13:58:00Z',
     rate: 'USD 22/hour',
     mealsIncluded: true,
+    additionalDetails: 'Emergency medical support required. 24/7 availability needed.'
   },
   payment: {
     NeedPayableAmount: {
@@ -72,7 +90,8 @@ const getMockContract = (): Contract => ({
                   CurrencyCode: "USD",
                   Value: 500.00
                 },
-                Status: "not_paid"
+                Status: "paid",
+                PaymentDate: "2025-03-28T10:30:00Z"
               },
               {
                 DueDate: "2025-05-01T00:00:00Z",
@@ -80,7 +99,8 @@ const getMockContract = (): Contract => ({
                   CurrencyCode: "USD",
                   Value: 500.00
                 },
-                Status: "not_paid"
+                Status: "requested",
+                RequestDate: "2025-04-25T09:15:00Z"
               }
             ]
           },
@@ -120,35 +140,6 @@ const getMockContract = (): Contract => ({
                 Status: "not_paid"
               }
             ]
-          },
-          {
-            PaymentFrequency: "Daily",
-            Tranches: [
-              {
-                DueDate: "2025-04-01T00:00:00Z",
-                Amount: {
-                  CurrencyCode: "USD",
-                  Value: 50.00
-                },
-                Status: "not_paid"
-              },
-              {
-                DueDate: "2025-04-02T00:00:00Z",
-                Amount: {
-                  CurrencyCode: "USD",
-                  Value: 50.00
-                },
-                Status: "not_paid"
-              },
-              {
-                DueDate: "2025-04-03T00:00:00Z",
-                Amount: {
-                  CurrencyCode: "USD",
-                  Value: 50.00
-                },
-                Status: "not_paid"
-              }
-            ]
           }
         ]
       }
@@ -156,16 +147,39 @@ const getMockContract = (): Contract => ({
     selectedPaymentType: "partial",
     selectedPaymentFrequency: "Monthly"
   },
-  createdAt: '2023-09-10T10:00:00Z',
-  updatedAt: '2023-09-10T10:00:00Z',
+  history: [
+    {
+      id: 'h1',
+      date: '2025-03-15T10:00:00Z',
+      action: 'Contract Created',
+      user: 'Sai Teja Kotagiri',
+      notes: 'Initial contract creation'
+    },
+    {
+      id: 'h2',
+      date: '2025-03-16T14:30:00Z',
+      action: 'Contract Reviewed',
+      user: 'Mittu HIC',
+      notes: 'Reviewed terms and conditions'
+    },
+    {
+      id: 'h3',
+      date: '2025-03-18T09:00:00Z',
+      action: 'Contract Activated',
+      user: 'System',
+      notes: 'Contract automatically activated on start date'
+    }
+  ],
+  createdAt: '2025-03-15T10:00:00Z',
+  updatedAt: '2025-03-18T09:00:00Z',
 });
 
 const AdminContractEditor = () => {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
   const [contract, setContract] = useState<Contract>(getMockContract());
-  const [activeTab, setActiveTab] = useState('general');
-  const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [isSaving, setIsSaving] = useState(false);
   
   const formatDate = (dateStr: string) => {
     try {
@@ -175,12 +189,20 @@ const AdminContractEditor = () => {
     }
   };
 
-  const handleSaveChanges = () => {
-    toast({
-      title: "Changes Saved",
-      description: `Contract #${contract.id} has been updated successfully.`,
-    });
-    setIsEditing(false);
+  const handleSaveChanges = async () => {
+    setIsSaving(true);
+    // Simulate API call
+    setTimeout(() => {
+      toast({
+        title: "Changes Saved",
+        description: `Contract #${contract.id} has been updated successfully.`,
+      });
+      setIsSaving(false);
+      setContract(prev => ({
+        ...prev,
+        updatedAt: new Date().toISOString()
+      }));
+    }, 1000);
   };
 
   const handleStatusChange = (newStatus: Contract['status']) => {
@@ -196,25 +218,15 @@ const AdminContractEditor = () => {
     });
   };
 
-  const handlePaymentFrequencyChange = (frequency: 'Monthly' | 'Weekly' | 'Daily') => {
-    if (!contract.payment) return;
-    
+  const handleProgressChange = (progress: number) => {
     setContract(prev => ({
       ...prev,
-      payment: {
-        ...prev.payment!,
-        selectedPaymentFrequency: frequency
-      },
+      progress: Math.max(0, Math.min(100, progress)),
       updatedAt: new Date().toISOString()
     }));
-    
-    toast({
-      title: "Payment Plan Updated",
-      description: `Payment frequency changed to ${frequency}.`,
-    });
   };
 
-  const handleTrancheStatusChange = (intervalFrequency: string, trancheIndex: number, newStatus: 'not_paid' | 'requested' | 'paid' | 'cancelled') => {
+  const handlePaymentTrancheUpdate = (intervalFrequency: string, trancheIndex: number, updates: Partial<PaymentTranche>) => {
     if (!contract.payment) return;
     
     const updatedContract = { ...contract };
@@ -224,25 +236,34 @@ const AdminContractEditor = () => {
     
     if (intervalIndex === -1) return;
     
-    updatedContract.payment.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[trancheIndex].Status = newStatus;
-    
-    if (newStatus === 'requested') {
-      updatedContract.payment.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[trancheIndex].RequestDate = new Date().toISOString();
-    } else if (newStatus === 'paid') {
-      updatedContract.payment.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[trancheIndex].PaymentDate = new Date().toISOString();
-    }
+    updatedContract.payment.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[trancheIndex] = {
+      ...updatedContract.payment.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[trancheIndex],
+      ...updates
+    };
     
     updatedContract.updatedAt = new Date().toISOString();
     setContract(updatedContract);
+  };
+
+  const addHistoryEntry = (action: string, notes?: string) => {
+    const newEntry = {
+      id: `h${Date.now()}`,
+      date: new Date().toISOString(),
+      action,
+      user: 'Admin',
+      notes
+    };
     
-    toast({
-      title: "Payment Status Updated",
-      description: `Tranche #${trancheIndex + 1} status changed to ${newStatus.replace('_', ' ')}.`,
-    });
+    setContract(prev => ({
+      ...prev,
+      history: [newEntry, ...(prev.history || [])],
+      updatedAt: new Date().toISOString()
+    }));
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
         <div className="container flex justify-between items-center h-16 px-4 md:px-6">
           <div className="flex items-center">
@@ -272,6 +293,7 @@ const AdminContractEditor = () => {
       </header>
 
       <main className="container px-4 py-8 md:px-6">
+        {/* Breadcrumb and Actions */}
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
@@ -288,18 +310,35 @@ const AdminContractEditor = () => {
             <Link to={`/contracts/${id}`} className="px-4 py-2 border border-gray-300 bg-white text-gray-700 rounded-md hover:bg-gray-50">
               View Public Page
             </Link>
-            <Button onClick={handleSaveChanges} className="bg-blue-600 hover:bg-blue-700">
-              <Save className="w-4 h-4 mr-2" />
-              Save Changes
+            <Button 
+              onClick={handleSaveChanges} 
+              disabled={isSaving}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isSaving ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Changes
+                </>
+              )}
             </Button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Sidebar */}
           <div className="lg:col-span-1">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle>Contract Information</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-blue-600" />
+                  Contract Control
+                </CardTitle>
                 <CardDescription>Admin editor view</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 text-sm">
@@ -315,13 +354,15 @@ const AdminContractEditor = () => {
                   <p className="text-muted-foreground">Last Updated</p>
                   <p className="font-medium">{formatDate(contract.updatedAt)}</p>
                 </div>
-                <div>
-                  <p className="text-muted-foreground">Status</p>
+                
+                {/* Quick Status Change */}
+                <div className="space-y-2">
+                  <Label>Status</Label>
                   <Select 
-                    defaultValue={contract.status}
+                    value={contract.status}
                     onValueChange={(value) => handleStatusChange(value as Contract['status'])}
                   >
-                    <SelectTrigger className="mt-1">
+                    <SelectTrigger>
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -335,19 +376,45 @@ const AdminContractEditor = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <p className="text-muted-foreground">Progress</p>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+
+                {/* Progress Control */}
+                <div className="space-y-2">
+                  <Label>Progress (%)</Label>
+                  <Input 
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={contract.progress}
+                    onChange={(e) => handleProgressChange(parseInt(e.target.value))}
+                  />
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
                     <div 
-                      className="bg-blue-600 h-2.5 rounded-full" 
+                      className="bg-blue-600 h-2.5 rounded-full transition-all duration-300" 
                       style={{ width: `${contract.progress}%` }}
                     ></div>
                   </div>
-                  <div className="flex justify-between text-xs mt-1">
-                    <span>0%</span>
-                    <span>{contract.progress}%</span>
-                    <span>100%</span>
-                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="space-y-2 pt-4 border-t">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => addHistoryEntry('Admin Review', 'Contract reviewed by admin for customer support')}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Mark as Reviewed
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => addHistoryEntry('Customer Issue Resolved', 'Issue resolved through admin intervention')}
+                  >
+                    <AlertTriangle className="w-4 h-4 mr-2" />
+                    Log Issue Resolution
+                  </Button>
                 </div>
               </CardContent>
               <CardFooter className="border-t pt-4">
@@ -359,12 +426,13 @@ const AdminContractEditor = () => {
             </Card>
           </div>
           
+          {/* Main Content */}
           <div className="lg:col-span-3">
-            <Tabs defaultValue="general" value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-5 mb-6">
-                <TabsTrigger value="general">
+            <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid grid-cols-6 mb-6">
+                <TabsTrigger value="overview">
                   <FileText className="w-4 h-4 mr-2" />
-                  General
+                  Overview
                 </TabsTrigger>
                 <TabsTrigger value="parties">
                   <Users className="w-4 h-4 mr-2" />
@@ -378,63 +446,113 @@ const AdminContractEditor = () => {
                   <DollarSign className="w-4 h-4 mr-2" />
                   Payments
                 </TabsTrigger>
+                <TabsTrigger value="history">
+                  <History className="w-4 h-4 mr-2" />
+                  History
+                </TabsTrigger>
                 <TabsTrigger value="attachments">
                   <Paperclip className="w-4 h-4 mr-2" />
-                  Attachments
+                  Files
                 </TabsTrigger>
               </TabsList>
               
-              <TabsContent value="general">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>General Information</CardTitle>
-                    <CardDescription>Update basic contract information</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+              {/* Overview Tab */}
+              <TabsContent value="overview">
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Contract Overview</CardTitle>
+                      <CardDescription>Basic contract information and quick edits</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="subject">Contract Subject</Label>
+                          <Input 
+                            id="subject" 
+                            value={contract.subject} 
+                            onChange={(e) => setContract({...contract, subject: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="type">Contract Type</Label>
+                          <Select 
+                            value={contract.type}
+                            onValueChange={(value) => setContract({...contract, type: value})}
+                          >
+                            <SelectTrigger id="type">
+                              <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Basic">Basic</SelectItem>
+                              <SelectItem value="Premium">Premium</SelectItem>
+                              <SelectItem value="Enterprise">Enterprise</SelectItem>
+                              <SelectItem value="Custom">Custom</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
                       <div className="space-y-2">
-                        <Label htmlFor="subject">Contract Subject</Label>
+                        <Label htmlFor="facilitatedBy">Facilitated By</Label>
                         <Input 
-                          id="subject" 
-                          value={contract.subject} 
-                          onChange={(e) => setContract({...contract, subject: e.target.value})}
+                          id="facilitatedBy" 
+                          value={contract.facilitatedBy} 
+                          onChange={(e) => setContract({...contract, facilitatedBy: e.target.value})}
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="type">Contract Type</Label>
-                        <Select 
-                          defaultValue={contract.type}
-                          onValueChange={(value) => setContract({...contract, type: value})}
-                        >
-                          <SelectTrigger id="type">
-                            <SelectValue placeholder="Select type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Basic">Basic</SelectItem>
-                            <SelectItem value="Premium">Premium</SelectItem>
-                            <SelectItem value="Custom">Custom</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="facilitatedBy">Facilitated By</Label>
-                      <Input 
-                        id="facilitatedBy" 
-                        value={contract.facilitatedBy} 
-                        onChange={(e) => setContract({...contract, facilitatedBy: e.target.value})}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+
+                  {/* Quick Stats */}
+                  <div className="grid grid-cols-3 gap-4">
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-muted-foreground">Total Value</p>
+                            <p className="text-2xl font-bold">
+                              {contract.payment?.NeedPayableAmount.CurrencyCode} {contract.payment?.NeedPayableAmount.Value.toFixed(2)}
+                            </p>
+                          </div>
+                          <DollarSign className="h-8 w-8 text-green-600" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-muted-foreground">Status</p>
+                            <Badge variant={contract.status === 'active' ? 'default' : 'secondary'}>
+                              {contract.status.replace('_', ' ').toUpperCase()}
+                            </Badge>
+                          </div>
+                          <CheckCircle className="h-8 w-8 text-blue-600" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-muted-foreground">Progress</p>
+                            <p className="text-2xl font-bold">{contract.progress}%</p>
+                          </div>
+                          <Clock className="h-8 w-8 text-orange-600" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
               </TabsContent>
               
+              {/* Parties Tab */}
               <TabsContent value="parties">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>From Party</CardTitle>
-                      <CardDescription>Contract initiator details</CardDescription>
+                      <CardTitle>From Party (Service Requester)</CardTitle>
+                      <CardDescription>The party requesting the service</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="space-y-2">
@@ -487,8 +605,8 @@ const AdminContractEditor = () => {
                   
                   <Card>
                     <CardHeader>
-                      <CardTitle>To Party</CardTitle>
-                      <CardDescription>Contract recipient details</CardDescription>
+                      <CardTitle>To Party (Service Provider)</CardTitle>
+                      <CardDescription>The party providing the service</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="space-y-2">
@@ -541,6 +659,7 @@ const AdminContractEditor = () => {
                 </div>
               </TabsContent>
               
+              {/* Details Tab */}
               <TabsContent value="details">
                 <Card>
                   <CardHeader>
@@ -564,10 +683,11 @@ const AdminContractEditor = () => {
                         <Label htmlFor="startDate">Start Date</Label>
                         <Input 
                           id="startDate" 
-                          value={contract.details.startDate} 
+                          type="datetime-local"
+                          value={new Date(contract.details.startDate).toISOString().slice(0, 16)}
                           onChange={(e) => setContract({
                             ...contract, 
-                            details: {...contract.details, startDate: e.target.value}
+                            details: {...contract.details, startDate: new Date(e.target.value).toISOString()}
                           })}
                         />
                       </div>
@@ -575,10 +695,11 @@ const AdminContractEditor = () => {
                         <Label htmlFor="endDate">End Date</Label>
                         <Input 
                           id="endDate" 
-                          value={contract.details.endDate} 
+                          type="datetime-local"
+                          value={new Date(contract.details.endDate).toISOString().slice(0, 16)}
                           onChange={(e) => setContract({
                             ...contract, 
-                            details: {...contract.details, endDate: e.target.value}
+                            details: {...contract.details, endDate: new Date(e.target.value).toISOString()}
                           })}
                         />
                       </div>
@@ -614,236 +735,73 @@ const AdminContractEditor = () => {
                           ...contract, 
                           details: {...contract.details, additionalDetails: e.target.value}
                         })}
+                        rows={4}
                       />
                     </div>
                   </CardContent>
                 </Card>
               </TabsContent>
               
+              {/* Payments Tab */}
               <TabsContent value="payments">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Payment Configuration</CardTitle>
-                    <CardDescription>Manage payment details and schedule</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Payment Type</Label>
-                        <Select 
-                          defaultValue={contract.payment?.selectedPaymentType || 'one-time'} 
-                          onValueChange={(value) => setContract({
-                            ...contract, 
-                            payment: {
-                              ...contract.payment!,
-                              selectedPaymentType: value as 'one-time' | 'partial'
-                            }
-                          })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select payment type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="one-time">One-time Payment</SelectItem>
-                            <SelectItem value="partial">Partial Payment</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      {contract.payment?.selectedPaymentType === 'partial' && (
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Payment Configuration</CardTitle>
+                      <CardDescription>Comprehensive payment management for customer support</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {/* Payment Amounts */}
+                      <div className="grid grid-cols-3 gap-4">
                         <div className="space-y-2">
-                          <Label>Payment Frequency</Label>
-                          <Select 
-                            defaultValue={contract.payment.selectedPaymentFrequency || 'Monthly'} 
-                            onValueChange={(value) => handlePaymentFrequencyChange(value as 'Monthly' | 'Weekly' | 'Daily')}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select frequency" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Monthly">Monthly</SelectItem>
-                              <SelectItem value="Weekly">Weekly</SelectItem>
-                              <SelectItem value="Daily">Daily</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Label>Total Amount (Need Payable)</Label>
+                          <div className="flex gap-2">
+                            <Input 
+                              value={contract.payment?.NeedPayableAmount.CurrencyCode} 
+                              onChange={(e) => {
+                                if (!contract.payment) return;
+                                setContract({
+                                  ...contract,
+                                  payment: {
+                                    ...contract.payment,
+                                    NeedPayableAmount: {
+                                      ...contract.payment.NeedPayableAmount,
+                                      CurrencyCode: e.target.value
+                                    }
+                                  }
+                                });
+                              }}
+                              className="w-20"
+                              placeholder="USD"
+                            />
+                            <Input 
+                              type="number"
+                              step="0.01"
+                              value={contract.payment?.NeedPayableAmount.Value} 
+                              onChange={(e) => {
+                                if (!contract.payment) return;
+                                setContract({
+                                  ...contract,
+                                  payment: {
+                                    ...contract.payment,
+                                    NeedPayableAmount: {
+                                      ...contract.payment.NeedPayableAmount,
+                                      Value: parseFloat(e.target.value) || 0
+                                    }
+                                  }
+                                });
+                              }}
+                            />
+                          </div>
                         </div>
-                      )}
-                    </div>
-                    
-                    {contract.payment?.selectedPaymentType === 'partial' && contract.payment.selectedPaymentFrequency && (
-                      <div className="border rounded-lg overflow-hidden">
-                        <div className="bg-gray-100 p-3 border-b font-medium flex justify-between items-center">
-                          <span>{contract.payment.selectedPaymentFrequency} Payment Schedule</span>
-                          <span>Total: {contract.payment.NeedPayableAmount.CurrencyCode} {contract.payment.NeedPayableAmount.Value.toFixed(2)}</span>
-                        </div>
-                        <table className="min-w-full divide-y divide-gray-200">
-                          <thead className="bg-gray-50">
-                            <tr>
-                              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Due Date
-                              </th>
-                              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Amount
-                              </th>
-                              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Status
-                              </th>
-                              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Action
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody className="bg-white divide-y divide-gray-200">
-                            {contract.payment.PaymentPlans[0].PaymentIntervals
-                              .find(interval => interval.PaymentFrequency === contract.payment?.selectedPaymentFrequency)
-                              ?.Tranches.map((tranche, index) => (
-                                <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                    <Input 
-                                      type="date" 
-                                      defaultValue={new Date(tranche.DueDate).toISOString().split('T')[0]}
-                                      onChange={(e) => {
-                                        const updatedContract = { ...contract };
-                                        const intervalIndex = updatedContract.payment!.PaymentPlans[0].PaymentIntervals.findIndex(
-                                          interval => interval.PaymentFrequency === contract.payment?.selectedPaymentFrequency
-                                        );
-                                        if (intervalIndex === -1) return;
-                                        updatedContract.payment!.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[index].DueDate = 
-                                          new Date(e.target.value).toISOString();
-                                        setContract(updatedContract);
-                                      }}
-                                    />
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                    <div className="flex items-center">
-                                      <Input 
-                                        type="number"
-                                        value={tranche.Amount.Value}
-                                        onChange={(e) => {
-                                          const updatedContract = { ...contract };
-                                          const intervalIndex = updatedContract.payment!.PaymentPlans[0].PaymentIntervals.findIndex(
-                                            interval => interval.PaymentFrequency === contract.payment?.selectedPaymentFrequency
-                                          );
-                                          if (intervalIndex === -1) return;
-                                          updatedContract.payment!.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches[index].Amount.Value = 
-                                            parseFloat(e.target.value);
-                                          setContract(updatedContract);
-                                        }}
-                                      />
-                                    </div>
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap">
-                                    <Select 
-                                      defaultValue={tranche.Status || 'not_paid'} 
-                                      onValueChange={(value) => handleTrancheStatusChange(
-                                        contract.payment!.selectedPaymentFrequency!,
-                                        index,
-                                        value as 'not_paid' | 'requested' | 'paid' | 'cancelled'
-                                      )}
-                                    >
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Select status" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="not_paid">Not Paid</SelectItem>
-                                        <SelectItem value="requested">Requested</SelectItem>
-                                        <SelectItem value="paid">Paid</SelectItem>
-                                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                    <Button 
-                                      variant="destructive" 
-                                      size="sm"
-                                      onClick={() => {
-                                        const updatedContract = { ...contract };
-                                        const intervalIndex = updatedContract.payment!.PaymentPlans[0].PaymentIntervals.findIndex(
-                                          interval => interval.PaymentFrequency === contract.payment?.selectedPaymentFrequency
-                                        );
-                                        if (intervalIndex === -1) return;
-                                        
-                                        if (updatedContract.payment!.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches.length > 1) {
-                                          updatedContract.payment!.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches.splice(index, 1);
-                                          setContract(updatedContract);
-                                          toast({
-                                            title: "Tranche Removed",
-                                            description: `Payment tranche has been removed.`,
-                                          });
-                                        } else {
-                                          toast({
-                                            title: "Cannot Remove",
-                                            description: `At least one payment tranche must exist.`,
-                                            variant: "destructive"
-                                          });
-                                        }
-                                      }}
-                                    >
-                                      <Trash className="w-4 h-4" />
-                                    </Button>
-                                  </td>
-                                </tr>
-                              ))}
-                          </tbody>
-                        </table>
-                        <div className="p-3 border-t bg-gray-50">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => {
-                              const updatedContract = { ...contract };
-                              const intervalIndex = updatedContract.payment!.PaymentPlans[0].PaymentIntervals.findIndex(
-                                interval => interval.PaymentFrequency === contract.payment?.selectedPaymentFrequency
-                              );
-                              if (intervalIndex === -1) return;
-                              
-                              const tranches = updatedContract.payment!.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches;
-                              const lastTranche = tranches[tranches.length - 1];
-                              
-                              const newDueDate = new Date(lastTranche.DueDate);
-                              if (contract.payment!.selectedPaymentFrequency === 'Daily') {
-                                newDueDate.setDate(newDueDate.getDate() + 1);
-                              } else if (contract.payment!.selectedPaymentFrequency === 'Weekly') {
-                                newDueDate.setDate(newDueDate.getDate() + 7);
-                              } else if (contract.payment!.selectedPaymentFrequency === 'Monthly') {
-                                newDueDate.setMonth(newDueDate.getMonth() + 1);
-                              }
-                              
-                              const newTranche: PaymentTranche = {
-                                DueDate: newDueDate.toISOString(),
-                                Amount: {
-                                  CurrencyCode: lastTranche.Amount.CurrencyCode,
-                                  Value: lastTranche.Amount.Value
-                                },
-                                Status: 'not_paid'
-                              };
-                              
-                              updatedContract.payment!.PaymentPlans[0].PaymentIntervals[intervalIndex].Tranches.push(newTranche);
-                              setContract(updatedContract);
-                              
-                              toast({
-                                title: "Tranche Added",
-                                description: `New payment tranche has been added.`,
-                              });
-                            }}
-                          >
-                            Add Payment Tranche
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Platform Fee (From Need)</Label>
-                        <div className="flex">
+                        <div className="space-y-2">
+                          <Label>Platform Fee (From Need)</Label>
                           <Input 
+                            type="number"
+                            step="0.01"
                             value={contract.payment?.PlatformFee.FromNeed.Value} 
                             onChange={(e) => {
                               if (!contract.payment) return;
-                              const value = parseFloat(e.target.value);
-                              if (isNaN(value)) return;
-                              
                               setContract({
                                 ...contract,
                                 payment: {
@@ -852,7 +810,7 @@ const AdminContractEditor = () => {
                                     ...contract.payment.PlatformFee,
                                     FromNeed: {
                                       ...contract.payment.PlatformFee.FromNeed,
-                                      Value: value
+                                      Value: parseFloat(e.target.value) || 0
                                     }
                                   }
                                 }
@@ -860,17 +818,14 @@ const AdminContractEditor = () => {
                             }}
                           />
                         </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Platform Fee (From Offer)</Label>
-                        <div className="flex">
+                        <div className="space-y-2">
+                          <Label>Platform Fee (From Offer)</Label>
                           <Input 
+                            type="number"
+                            step="0.01"
                             value={contract.payment?.PlatformFee.FromOffer.Value} 
                             onChange={(e) => {
                               if (!contract.payment) return;
-                              const value = parseFloat(e.target.value);
-                              if (isNaN(value)) return;
-                              
                               setContract({
                                 ...contract,
                                 payment: {
@@ -879,7 +834,7 @@ const AdminContractEditor = () => {
                                     ...contract.payment.PlatformFee,
                                     FromOffer: {
                                       ...contract.payment.PlatformFee.FromOffer,
-                                      Value: value
+                                      Value: parseFloat(e.target.value) || 0
                                     }
                                   }
                                 }
@@ -888,11 +843,142 @@ const AdminContractEditor = () => {
                           />
                         </div>
                       </div>
+
+                      {/* Payment Type and Frequency */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Payment Type</Label>
+                          <Select 
+                            value={contract.payment?.selectedPaymentType || 'one-time'} 
+                            onValueChange={(value) => setContract({
+                              ...contract, 
+                              payment: {
+                                ...contract.payment!,
+                                selectedPaymentType: value as 'one-time' | 'partial'
+                              }
+                            })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select payment type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="one-time">One-time Payment</SelectItem>
+                              <SelectItem value="partial">Partial Payment</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        {contract.payment?.selectedPaymentType === 'partial' && (
+                          <div className="space-y-2">
+                            <Label>Payment Frequency</Label>
+                            <Select 
+                              value={contract.payment.selectedPaymentFrequency || 'Monthly'} 
+                              onValueChange={(value) => setContract({
+                                ...contract,
+                                payment: {
+                                  ...contract.payment!,
+                                  selectedPaymentFrequency: value as 'Monthly' | 'Weekly' | 'Daily'
+                                }
+                              })}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select frequency" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Monthly">Monthly</SelectItem>
+                                <SelectItem value="Weekly">Weekly</SelectItem>
+                                <SelectItem value="Daily">Daily</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Payment Schedule Management */}
+                  {contract.payment?.selectedPaymentType === 'partial' && contract.payment.selectedPaymentFrequency && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Payment Schedule Management</CardTitle>
+                        <CardDescription>Detailed payment tranche management for customer support</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <PaymentPlanDisplay
+                          paymentType={contract.payment.selectedPaymentType}
+                          paymentFrequency={contract.payment.selectedPaymentFrequency}
+                          interval={contract.payment.PaymentPlans[0]?.PaymentIntervals.find(
+                            interval => interval.PaymentFrequency === contract.payment?.selectedPaymentFrequency
+                          )}
+                          isFromUser={true}
+                          onRequestPayment={(trancheIndex) => {
+                            const selectedInterval = contract.payment?.selectedPaymentFrequency;
+                            if (selectedInterval) {
+                              handlePaymentTrancheUpdate(selectedInterval, trancheIndex, { 
+                                Status: 'requested', 
+                                RequestDate: new Date().toISOString() 
+                              });
+                              addHistoryEntry('Payment Requested', `Admin requested payment for tranche ${trancheIndex + 1}`);
+                            }
+                          }}
+                          onApprovePayment={(trancheIndex) => {
+                            const selectedInterval = contract.payment?.selectedPaymentFrequency;
+                            if (selectedInterval) {
+                              handlePaymentTrancheUpdate(selectedInterval, trancheIndex, { 
+                                Status: 'paid', 
+                                PaymentDate: new Date().toISOString() 
+                              });
+                              addHistoryEntry('Payment Approved', `Admin approved payment for tranche ${trancheIndex + 1}`);
+                            }
+                          }}
+                          onCancelPayment={(trancheIndex) => {
+                            const selectedInterval = contract.payment?.selectedPaymentFrequency;
+                            if (selectedInterval) {
+                              handlePaymentTrancheUpdate(selectedInterval, trancheIndex, { Status: 'cancelled' });
+                              addHistoryEntry('Payment Cancelled', `Admin cancelled payment for tranche ${trancheIndex + 1}`);
+                            }
+                          }}
+                        />
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </TabsContent>
+
+              {/* History Tab */}
+              <TabsContent value="history">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Contract History</CardTitle>
+                    <CardDescription>Audit trail and activity log</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {contract.history?.map((entry) => (
+                        <div key={entry.id} className="flex items-start gap-4 p-4 border rounded-lg">
+                          <div className="w-2 h-2 rounded-full bg-blue-600 mt-2"></div>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-medium">{entry.action}</h4>
+                              <span className="text-sm text-muted-foreground">
+                                {formatDate(entry.date)}
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              By {entry.user}
+                            </p>
+                            {entry.notes && (
+                              <p className="text-sm mt-1">{entry.notes}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
               </TabsContent>
               
+              {/* Attachments Tab */}
               <TabsContent value="attachments">
                 <Card>
                   <CardHeader>
