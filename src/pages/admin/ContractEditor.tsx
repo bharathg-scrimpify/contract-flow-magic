@@ -27,9 +27,11 @@ import {
   CheckCircle,
   Clock,
   Shield,
-  RefreshCw
+  RefreshCw,
+  Code
 } from 'lucide-react';
 import PaymentPlanDisplay from '@/components/contract/PaymentPlanDisplay';
+import JsonEditor from '@/components/admin/JsonEditor';
 
 const getMockContract = (): Contract => ({
   id: 'c-12345',
@@ -429,7 +431,7 @@ const AdminContractEditor = () => {
           {/* Main Content */}
           <div className="lg:col-span-3">
             <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-6 mb-6">
+              <TabsList className="grid grid-cols-7 mb-6">
                 <TabsTrigger value="overview">
                   <FileText className="w-4 h-4 mr-2" />
                   Overview
@@ -453,6 +455,10 @@ const AdminContractEditor = () => {
                 <TabsTrigger value="attachments">
                   <Paperclip className="w-4 h-4 mr-2" />
                   Files
+                </TabsTrigger>
+                <TabsTrigger value="json">
+                  <Code className="w-4 h-4 mr-2" />
+                  JSON
                 </TabsTrigger>
               </TabsList>
               
@@ -1015,6 +1021,17 @@ const AdminContractEditor = () => {
                   </CardContent>
                 </Card>
               </TabsContent>
+              
+              {/* JSON Editor Tab */}
+              <TabsContent value="json">
+                <JsonEditor 
+                  contract={contract}
+                  onContractUpdate={(updatedContract) => {
+                    setContract(updatedContract);
+                    addHistoryEntry('Contract Updated via JSON Editor', 'Admin made changes using the JSON editor');
+                  }}
+                />
+              </TabsContent>
             </Tabs>
           </div>
         </div>
@@ -1024,3 +1041,5 @@ const AdminContractEditor = () => {
 };
 
 export default AdminContractEditor;
+
+</edits_to_apply>
